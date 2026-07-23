@@ -12,11 +12,50 @@ export interface OutlookTestResult {
   message: string;
 }
 
-async function fetchAccessToken(config: EmailConfig): Promise<string> {
+async function fetchAccessToken(
+  config: EmailConfig,
+): Promise<{ accessToken: string; isDelegated: boolean }> {
   const tokenEndpoint = `https://login.microsoftonline.com/${encodeURIComponent(
     config.tenantId,
   )}/oauth2/v2.0/token`;
 
+  const authType = config.authType || (config.password ? "delegated" : "client_credentials");
+
+  // If authType is delegated OR if password is provided, try ROPC Delegated Flow first
+  if (authType === "delegated" || config.password) {
+    const params = new URLSearchParams();
+    params.append("grant_type", "password");
+    params.append("client_id", config.applicationId);
+    if (config.clientSecret) {
+      params.append("client_secret", config.clientSecret);
+    }
+    params.append("username", config.emailAddress);
+    params.append("password", config.password || config.clientSecret);
+    params.append(
+      "scope",
+      "https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/User.Read openid profile offline_access",
+    );
+
+    const response = await fetch(tokenEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.access_token) {
+      return { accessToken: data.access_token, isDelegated: true };
+    }
+
+    if (config.authType === "delegated") {
+      const errorDescription =
+        data.error_description || data.error || response.statusText;
+      throw new Error(`Microsoft Delegated Authentication failed: ${errorDescription}`);
+    }
+  }
+
+  // Application Flow (grant_type=client_credentials)
   const params = new URLSearchParams();
   params.append("grant_type", "client_credentials");
   params.append("client_id", config.applicationId);
@@ -25,9 +64,7 @@ async function fetchAccessToken(config: EmailConfig): Promise<string> {
 
   const response = await fetch(tokenEndpoint, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: params.toString(),
   });
 
@@ -43,16 +80,43 @@ async function fetchAccessToken(config: EmailConfig): Promise<string> {
     throw new Error("No access token returned by Microsoft OAuth provider.");
   }
 
-  return data.access_token;
+  return { accessToken: data.access_token, isDelegated: false };
 }
 
 export async function testOutlookConnection(
   config: EmailConfig,
 ): Promise<OutlookTestResult> {
   try {
-    const accessToken = await fetchAccessToken(config);
+    const { accessToken, isDelegated } = await fetchAccessToken(config);
 
-    // Verify user mailbox access with Microsoft Graph API
+    if (isDelegated) {
+      // Test via /v1.0/me endpoint for Delegated Permissions
+      const meEndpoint = "https://graph.microsoft.com/v1.0/me";
+      const response = await fetch(meEndpoint, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        const errorMsg = data.error?.message || response.statusText;
+        return {
+          success: false,
+          message: `Delegated Token acquired, but /me test failed: ${errorMsg}`,
+        };
+      }
+
+      const meData = await response.json();
+      return {
+        success: true,
+        message: `Connection successful! Verified Delegated Graph API access for ${meData.userPrincipalName || config.emailAddress}.`,
+      };
+    }
+
+    // Application Flow: test via /v1.0/users/{email} endpoint
     const userEndpoint = `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(
       config.emailAddress,
     )}`;
@@ -72,14 +136,7 @@ export async function testOutlookConnection(
       if (response.status === 403 || errorMsg.includes("Insufficient privileges")) {
         return {
           success: false,
-          message: `OAuth Token acquired! However, Azure returned "Insufficient privileges". Action required: In Azure Portal → App Registrations → API Permissions, add Application Permission "Mail.Send" (and "User.Read.All") and click "Grant admin consent for [Tenant]".`,
-        };
-      }
-
-      if (response.status === 404) {
-        return {
-          success: false,
-          message: `OAuth Token acquired, but user account "${config.emailAddress}" was not found in Azure AD Tenant. Please check the email address.`,
+          message: `Application Token acquired, but Azure returned "Insufficient privileges". Since your Azure tenant uses Delegated Permissions, please select "Delegated Permissions" and enter your account/app password in Settings.`,
         };
       }
 
@@ -91,15 +148,12 @@ export async function testOutlookConnection(
 
     return {
       success: true,
-      message: `Connection successful! Verified Microsoft Graph API access for ${config.emailAddress}.`,
+      message: `Connection successful! Verified Application Graph API access for ${config.emailAddress}.`,
     };
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Outlook connection test failed.";
-    return {
-      success: false,
-      message,
-    };
+    return { success: false, message };
   }
 }
 
@@ -109,11 +163,13 @@ export async function sendOutlookEmail({
   subject,
   body,
 }: SendEmailOptions): Promise<void> {
-  const accessToken = await fetchAccessToken(config);
+  const { accessToken, isDelegated } = await fetchAccessToken(config);
 
-  const sendMailEndpoint = `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(
-    config.emailAddress,
-  )}/sendMail`;
+  const sendMailEndpoint = isDelegated
+    ? "https://graph.microsoft.com/v1.0/me/sendMail"
+    : `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(
+        config.emailAddress,
+      )}/sendMail`;
 
   const payload = {
     message: {
@@ -145,15 +201,7 @@ export async function sendOutlookEmail({
   if (!response.ok && response.status !== 202) {
     const data = await response.json().catch(() => ({}));
     const errorMsg =
-      data.error?.message ||
-      `HTTP ${response.status} ${response.statusText}`;
-
-    if (response.status === 403) {
-      throw new Error(
-        `Azure permission error (403 Forbidden): Ensure Application Permission 'Mail.Send' is granted and Admin Consent is clicked in Azure Portal. Details: ${errorMsg}`
-      );
-    }
-
-    throw new Error(`Failed to send email via Microsoft Graph API: ${errorMsg}`);
+      data.error?.message || `HTTP ${response.status} ${response.statusText}`;
+    throw new Error(`Failed to send email via Microsoft Graph API (${isDelegated ? "Delegated" : "Application"}): ${errorMsg}`);
   }
 }

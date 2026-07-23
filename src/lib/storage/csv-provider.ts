@@ -319,6 +319,8 @@ const FILE_CONFIG: Record<
       "applicationId",
       "tenantId",
       "clientSecret",
+      "authType",
+      "password",
       "createdAt",
       "updatedAt",
     ],
@@ -838,6 +840,8 @@ export class CsvStorageProvider implements StorageProvider {
       applicationId: row.applicationId,
       tenantId: row.tenantId,
       clientSecret: row.clientSecret,
+      authType: (row.authType as "client_credentials" | "delegated") || "delegated",
+      password: row.password || "",
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     }));
@@ -860,6 +864,8 @@ export class CsvStorageProvider implements StorageProvider {
         applicationId: config.applicationId.trim(),
         tenantId: config.tenantId.trim(),
         clientSecret: config.clientSecret.trim(),
+        authType: config.authType || "delegated",
+        password: config.password?.trim() || "",
         createdAt: now,
         updatedAt: now,
       };
@@ -894,6 +900,8 @@ export class CsvStorageProvider implements StorageProvider {
         applicationId: updates.applicationId?.trim() ?? current.applicationId,
         tenantId: updates.tenantId?.trim() ?? current.tenantId,
         clientSecret: updates.clientSecret?.trim() ?? current.clientSecret,
+        authType: updates.authType ?? current.authType ?? "delegated",
+        password: updates.password?.trim() ?? current.password ?? "",
       };
 
       configs[index] = updatedConfig;
@@ -926,6 +934,8 @@ export class CsvStorageProvider implements StorageProvider {
         applicationId: c.applicationId,
         tenantId: c.tenantId,
         clientSecret: c.clientSecret,
+        authType: c.authType || "delegated",
+        password: c.password || "",
         createdAt: c.createdAt,
         updatedAt: c.updatedAt,
       })),

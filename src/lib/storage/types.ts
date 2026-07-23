@@ -62,6 +62,8 @@ export interface EmailConfig {
   applicationId: string;
   tenantId: string;
   clientSecret: string;
+  authType?: 'client_credentials' | 'delegated';
+  password?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -691,13 +691,15 @@ export async function addEmailConfigAction(formData: FormData) {
   const applicationId = getTextField(formData, "applicationId");
   const tenantId = getTextField(formData, "tenantId");
   const clientSecret = getTextField(formData, "clientSecret");
+  const authType = (getTextField(formData, "authType") as "client_credentials" | "delegated") || "delegated";
+  const password = getTextField(formData, "password");
 
-  if (!emailAddress || !applicationId || !tenantId || !clientSecret) {
+  if (!emailAddress || !applicationId || !tenantId || (!clientSecret && !password)) {
     redirect(
       buildRedirectPath(
         "/admin/settings",
         "error",
-        "All email configuration fields are required.",
+        "Email address, Application ID, Tenant ID, and Client Secret / Account Password are required.",
       ),
     );
   }
@@ -708,7 +710,9 @@ export async function addEmailConfigAction(formData: FormData) {
       emailAddress,
       applicationId,
       tenantId,
-      clientSecret,
+      clientSecret: clientSecret || password,
+      authType,
+      password,
     });
   } catch (error) {
     const message =
@@ -736,13 +740,15 @@ export async function updateEmailConfigAction(formData: FormData) {
   const applicationId = getTextField(formData, "applicationId");
   const tenantId = getTextField(formData, "tenantId");
   const clientSecret = getTextField(formData, "clientSecret");
+  const authType = (getTextField(formData, "authType") as "client_credentials" | "delegated") || "delegated";
+  const password = getTextField(formData, "password");
 
-  if (!id || !emailAddress || !applicationId || !tenantId || !clientSecret) {
+  if (!id || !emailAddress || !applicationId || !tenantId) {
     redirect(
       buildRedirectPath(
         "/admin/settings",
         "error",
-        "All email configuration fields are required.",
+        "Required configuration fields are missing.",
       ),
     );
   }
@@ -753,7 +759,9 @@ export async function updateEmailConfigAction(formData: FormData) {
       emailAddress,
       applicationId,
       tenantId,
-      clientSecret,
+      clientSecret: clientSecret || password,
+      authType,
+      password,
     });
 
     if (!updated) {

@@ -82,9 +82,9 @@ export default async function AdminSettingsPage(
             <thead className="border-b border-[var(--line)] bg-slate-50 text-xs uppercase tracking-wider text-[var(--muted)]">
               <tr>
                 <th className="px-5 py-3.5 font-semibold">Email Address</th>
+                <th className="px-5 py-3.5 font-semibold">Auth Mode</th>
                 <th className="px-5 py-3.5 font-semibold">Application ID (Client ID)</th>
                 <th className="px-5 py-3.5 font-semibold">Tenant ID</th>
-                <th className="px-5 py-3.5 font-semibold">Client Secret</th>
                 <th className="px-5 py-3.5 font-semibold">Updated</th>
                 <th className="px-5 py-3.5 font-semibold text-right">Actions</th>
               </tr>
@@ -99,6 +99,7 @@ export default async function AdminSettingsPage(
               ) : (
                 emailConfigs.map((config) => {
                   const isEditing = editId === config.id;
+                  const isDelegated = config.authType === "delegated" || Boolean(config.password);
 
                   if (isEditing) {
                     return (
@@ -109,7 +110,18 @@ export default async function AdminSettingsPage(
                             <p className="text-xs font-semibold uppercase tracking-wider text-amber-700">
                               Editing Configuration for {config.emailAddress}
                             </p>
-                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                              <div>
+                                <label className="text-xs font-semibold text-[var(--foreground)]">Auth Mode</label>
+                                <select
+                                  name="authType"
+                                  defaultValue={isDelegated ? "delegated" : "client_credentials"}
+                                  className="mt-1 w-full rounded-lg border border-[var(--line)] px-3 py-2 text-xs outline-none focus:border-[var(--accent-deep)]"
+                                >
+                                  <option value="delegated">Delegated (User Password / App Password)</option>
+                                  <option value="client_credentials">Application (Client Secret)</option>
+                                </select>
+                              </div>
                               <div>
                                 <label className="text-xs font-semibold text-[var(--foreground)]">Email Address</label>
                                 <input
@@ -139,12 +151,12 @@ export default async function AdminSettingsPage(
                                 />
                               </div>
                               <div>
-                                <label className="text-xs font-semibold text-[var(--foreground)]">Client Secret</label>
+                                <label className="text-xs font-semibold text-[var(--foreground)]">Account Password / App Secret</label>
                                 <input
-                                  name="clientSecret"
+                                  name="password"
                                   type="password"
-                                  defaultValue={config.clientSecret}
-                                  required
+                                  defaultValue={config.password || config.clientSecret}
+                                  placeholder="Password or App Secret"
                                   className="mt-1 w-full rounded-lg border border-[var(--line)] px-3 py-2 text-xs outline-none focus:border-[var(--accent-deep)]"
                                 />
                               </div>
@@ -174,14 +186,16 @@ export default async function AdminSettingsPage(
                       <td className="px-5 py-4 font-semibold text-[var(--foreground)]">
                         {config.emailAddress}
                       </td>
+                      <td className="px-5 py-4 text-xs">
+                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${isDelegated ? "bg-purple-100 text-purple-900" : "bg-blue-100 text-blue-900"}`}>
+                          {isDelegated ? "Delegated (ROPC)" : "Application"}
+                        </span>
+                      </td>
                       <td className="px-5 py-4 text-xs font-mono text-[var(--muted)]">
                         {config.applicationId.slice(0, 8)}...{config.applicationId.slice(-4)}
                       </td>
                       <td className="px-5 py-4 text-xs font-mono text-[var(--muted)]">
                         {config.tenantId.slice(0, 8)}...{config.tenantId.slice(-4)}
-                      </td>
-                      <td className="px-5 py-4 text-xs font-mono text-[var(--muted)]">
-                        ••••••••••••
                       </td>
                       <td className="px-5 py-4 text-xs text-[var(--muted)]">
                         {formatDateTime(config.updatedAt)}
@@ -234,20 +248,35 @@ export default async function AdminSettingsPage(
             Add New Outlook Account Configuration
           </h3>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Register your Azure App credentials (Client ID, Tenant ID, Client Secret) with <code className="rounded bg-slate-100 px-1 py-0.5 text-slate-800">Mail.Send</code> application permission.
+            Configure your Microsoft Graph API sender account using either <span className="font-semibold text-purple-900">Delegated Permissions</span> (User Password / App Password) or <span className="font-semibold text-blue-900">Application Permissions</span> (Client Secret).
           </p>
 
-          <form action={addEmailConfigAction} className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <form action={addEmailConfigAction} className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-1.5">
+              <label htmlFor="authType" className="text-xs font-semibold text-[var(--foreground)]">
+                Auth Permission Mode
+              </label>
+              <select
+                id="authType"
+                name="authType"
+                defaultValue="delegated"
+                className="rounded-xl border border-[var(--line)] bg-white px-3 py-2.5 text-xs outline-none transition focus:border-[var(--accent-deep)]"
+              >
+                <option value="delegated">Delegated (User Password / App Password)</option>
+                <option value="client_credentials">Application (Client Secret)</option>
+              </select>
+            </div>
+
             <div className="grid gap-1.5">
               <label htmlFor="emailAddress" className="text-xs font-semibold text-[var(--foreground)]">
-                Email Address
+                Sender Email Address
               </label>
               <input
                 id="emailAddress"
                 name="emailAddress"
                 type="email"
                 required
-                placeholder="hr@company.com"
+                placeholder="aravind.balineni@accelirate.com"
                 className="rounded-xl border border-[var(--line)] bg-white px-3.5 py-2.5 text-xs outline-none transition focus:border-[var(--accent-deep)]"
               />
             </div>
@@ -279,20 +308,20 @@ export default async function AdminSettingsPage(
             </div>
 
             <div className="grid gap-1.5">
-              <label htmlFor="clientSecret" className="text-xs font-semibold text-[var(--foreground)]">
-                Client Secret
+              <label htmlFor="password" className="text-xs font-semibold text-[var(--foreground)]">
+                Account Password / Secret
               </label>
               <input
-                id="clientSecret"
-                name="clientSecret"
+                id="password"
+                name="password"
                 type="password"
                 required
-                placeholder="Client secret value"
+                placeholder="User Password or App Password"
                 className="rounded-xl border border-[var(--line)] bg-white px-3.5 py-2.5 text-xs outline-none transition focus:border-[var(--accent-deep)]"
               />
             </div>
 
-            <div className="md:col-span-2 lg:col-span-4 flex justify-end">
+            <div className="md:col-span-2 lg:col-span-5 flex justify-end">
               <button
                 type="submit"
                 className="inline-flex items-center gap-2 rounded-full bg-[var(--accent-deep)] px-6 py-2.5 text-xs font-semibold text-white transition hover:bg-[var(--accent)] shadow-md"
