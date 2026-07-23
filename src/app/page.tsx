@@ -6,6 +6,50 @@ const platformFeatures = [
   {
     icon: (
       <svg className="h-6 w-6 text-[var(--accent-deep)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
+    ),
+    eyebrow: "Link Security & Expiration",
+    title: "Automatic Link Expiration",
+    description:
+      "Test session links automatically expire once a candidate completes, ends early, or times out their test, or if deactivated by admin.",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6 text-[var(--accent-deep)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+    ),
+    eyebrow: "Bulk Candidate Import",
+    title: "CSV Bulk Link Generation",
+    description:
+      "Create test links for multiple candidates at once by importing candidate CSVs, complete with a downloadable CSV template button with icon.",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6 text-[var(--accent-deep)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+    eyebrow: "Outlook Integration",
+    title: "Microsoft Graph Email Delivery",
+    description:
+      "Configure multiple Outlook email credentials (Client ID, Tenant ID, Secret) in Settings with Graph API connection testing and sender dropdown selection.",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6 text-[var(--accent-deep)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+    ),
+    eyebrow: "Email Customization",
+    title: "Custom Subject & Template Body",
+    description:
+      "Customize Email Subject Name and Email Body with dynamic placeholders ({candidate_name}, {test_link}, {time_limit}) for candidate invitations.",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6 text-[var(--accent-deep)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7c0-2-1.5-3-3.5-3h-9C5.5 4 4 5 4 7z" />
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6M9 16h4" />
       </svg>
@@ -13,18 +57,7 @@ const platformFeatures = [
     eyebrow: "Dual Storage Engine",
     title: "PostgreSQL & CSV Backend",
     description:
-      "Configure your database provider in .env (STORAGE_PROVIDER=postgres or csv) with automatic fallback and seamless live switching.",
-  },
-  {
-    icon: (
-      <svg className="h-6 w-6 text-[var(--accent-deep)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-      </svg>
-    ),
-    eyebrow: "Admin Workspace",
-    title: "Multi-Admin Auth & Registration",
-    description:
-      "Register new admin accounts, manage session tokens, update admin passwords with bcrypt hashing, and control exam parameters.",
+      "Configure your database provider in .env (STORAGE_PROVIDER=postgres or csv) with automatic fallback and seamless live switching in settings.",
   },
   {
     icon: (
@@ -35,7 +68,7 @@ const platformFeatures = [
     eyebrow: "Bulk Question Upload",
     title: "CSV Import & Dynamic Options",
     description:
-      "Import question banks with 2, 3, 4, 5+ choices per question. Supports single-column pipe (|) syntax, JSON arrays, and multi-column layouts with template download.",
+      "Import question banks with 2, 3, 4, 5+ choices per question. Supports single-column pipe (|) syntax, JSON arrays, and multi-column layouts.",
   },
   {
     icon: (
@@ -55,29 +88,19 @@ const platformFeatures = [
       </svg>
     ),
     eyebrow: "Anti-Cheating Protection",
-    title: "Anti-Copy & Screenshot Blur",
+    title: "Anti-Copy & Proctored Shield",
     description:
-      "Questions cannot be copied or right-clicked. Auto-blur protection triggers if focus is lost or screenshot keys are pressed, stamped with dynamic candidate watermarks.",
-  },
-  {
-    icon: (
-      <svg className="h-6 w-6 text-[var(--accent-deep)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-    eyebrow: "Candidate Experience",
-    title: "Timed Assessment Flow",
-    description:
-      "Candidates get randomized question ordering, auto-saving answer persistence, countdown timer, and immediate completion review.",
+      "Questions cannot be copied or right-clicked. Auto-blur protection triggers if focus is lost, stamped with dynamic candidate watermarks.",
   },
 ];
 
 export default async function Home() {
   const storageProvider = await getStorageProvider();
-  const [questions, sessions, attempts, settings] = await Promise.all([
+  const [questions, sessions, attempts, emailConfigs, settings] = await Promise.all([
     storageProvider.getQuestions(),
     storageProvider.getSessions(),
     storageProvider.getAttempts(),
+    storageProvider.getEmailConfigs(),
     storageProvider.getSettings(),
   ]);
 
@@ -97,7 +120,7 @@ export default async function Home() {
                   Accelirate Assessment Platform
                 </p>
                 <p className="mt-1.5 text-sm font-medium text-[var(--muted)]">
-                  Enterprise MCQ Exam Platform with Anti-Cheating & Dual Storage
+                  Enterprise MCQ Exam Platform with Outlook Automation & Link Expiration
                 </p>
               </div>
               <div className="rounded-full border border-emerald-300 bg-emerald-50 px-4 py-1.5 text-xs font-bold text-emerald-900 shadow-xs">
@@ -107,10 +130,10 @@ export default async function Home() {
 
             <div className="space-y-6">
               <h1 className="max-w-3xl font-serif text-5xl leading-tight tracking-tight text-[var(--foreground)] sm:text-6xl">
-                Secure, fast, and proctored online aptitude testing.
+                Secure, fast, and automated candidate aptitude testing.
               </h1>
               <p className="max-w-2xl text-lg leading-8 text-[var(--muted)]">
-                Build question banks with dynamic options, launch candidate test sessions, enforce screenshot & copy protection, and export detailed evaluation analytics—all backed by CSV or PostgreSQL.
+                Create candidate test links in bulk via CSV, send automated invitation emails using Outlook Graph API, enforce automatic link expiration, and evaluate results—all backed by CSV or PostgreSQL.
               </p>
             </div>
 
@@ -125,10 +148,13 @@ export default async function Home() {
                 </svg>
               </Link>
               <Link
-                href="/admin/register"
-                className="inline-flex items-center justify-center rounded-full border border-[var(--line)] bg-white/80 px-7 py-3.5 text-sm font-semibold text-[var(--foreground)] transition-colors duration-200 hover:bg-white shadow-xs"
+                href="/admin/sessions"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--line)] bg-white/80 px-7 py-3.5 text-sm font-semibold text-[var(--foreground)] transition-colors duration-200 hover:bg-white shadow-xs"
               >
-                Register Admin Account
+                <span>Create Candidate Links</span>
+                <svg className="h-4 w-4 text-[var(--accent-deep)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
               </Link>
             </div>
           </div>
@@ -156,8 +182,8 @@ export default async function Home() {
                   <p className="mt-1 text-3xl font-bold text-[var(--accent-deep)]">{activeSessions.length}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-[var(--muted)]">Attempts Evaluated</p>
-                  <p className="mt-1 text-3xl font-bold text-[var(--foreground)]">{attempts.length}</p>
+                  <p className="text-xs font-medium text-[var(--muted)]">Outlook Mail Accounts</p>
+                  <p className="mt-1 text-3xl font-bold text-[var(--foreground)]">{emailConfigs.length}</p>
                 </div>
               </div>
             </div>
@@ -176,7 +202,7 @@ export default async function Home() {
               </div>
               {activeSessions.length > 0 ? (
                 <div className="mt-4 rounded-2xl bg-white/80 p-3.5 text-xs text-[var(--foreground)]">
-                  <p className="font-semibold text-[var(--accent-deep)]">Available Test Link:</p>
+                  <p className="font-semibold text-[var(--accent-deep)]">Available Active Test Link:</p>
                   <Link
                     href={`/test/${activeSessions[0].sessionId}`}
                     className="mt-1 block font-mono font-bold text-slate-800 hover:underline truncate"
@@ -201,7 +227,7 @@ export default async function Home() {
           </h2>
         </div>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {platformFeatures.map((feature) => (
             <article
               key={feature.title}
@@ -214,10 +240,10 @@ export default async function Home() {
                 <p className="mt-5 text-xs font-bold uppercase tracking-[0.25em] text-[var(--accent-deep)]">
                   {feature.eyebrow}
                 </p>
-                <h3 className="mt-2 text-xl font-bold leading-8 text-[var(--foreground)]">
+                <h3 className="mt-2 text-lg font-bold leading-7 text-[var(--foreground)]">
                   {feature.title}
                 </h3>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
+                <p className="mt-3 text-xs leading-6 text-[var(--muted)]">
                   {feature.description}
                 </p>
               </div>
@@ -235,7 +261,7 @@ export default async function Home() {
                 Live Assessment Sessions
               </p>
               <h2 className="mt-1 text-2xl font-bold text-[var(--foreground)]">
-                Take a Demo Test
+                Take an Active Candidate Test
               </h2>
             </div>
             <p className="text-xs font-medium text-[var(--muted)]">
