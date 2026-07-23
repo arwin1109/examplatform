@@ -228,13 +228,32 @@ export function ExamClient({
   }
 
   function handleEarlyEnd() {
-    if (window.confirm("End the exam early and submit your current answers?")) {
+    const unanswered = questions.length - answeredCount;
+    if (
+      window.confirm(
+        `End the exam early? You have answered ${answeredCount} of ${questions.length} question(s) (${unanswered} remaining unanswered).`,
+      )
+    ) {
       void submitCompletion("ended_early");
     }
   }
 
   function handleSubmitExam() {
-    void submitCompletion("completed");
+    if (answeredCount < questions.length) {
+      const unanswered = questions.length - answeredCount;
+      if (
+        !window.confirm(
+          `You have answered ${answeredCount} of ${questions.length} question(s) (${unanswered} unanswered). Are you sure you want to end and submit your exam now?`,
+        )
+      ) {
+        return;
+      }
+      void submitCompletion("ended_early");
+    } else {
+      if (window.confirm("Are you sure you want to submit your completed exam?")) {
+        void submitCompletion("completed");
+      }
+    }
   }
 
   return (

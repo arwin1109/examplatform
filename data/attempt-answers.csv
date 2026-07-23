@@ -2,3 +2,13 @@ attemptId,questionId,selectedAnswer,isCorrect,answeredAt,questionOrder
 ae6ddd5a-504f-48c3-884d-0c44779d163d,q-html-basics,<a>,true,2026-07-22T22:25:31.387Z,1
 ae6ddd5a-504f-48c3-884d-0c44779d163d,q-css-flex,justify-content,true,2026-07-22T22:25:41.634Z,2
 ae6ddd5a-504f-48c3-884d-0c44779d163d,q-js-array,find,false,2026-07-22T22:25:58.466Z,3
+b22edad5-f35a-4475-81d4-5a5691622d0a,q-fe-react-3,,false,2026-07-23T17:31:26.482Z,1
+b22edad5-f35a-4475-81d4-5a5691622d0a,q-be-node-3,,false,2026-07-23T17:31:26.482Z,2
+b22edad5-f35a-4475-81d4-5a5691622d0a,q-db-sql-3,,false,2026-07-23T17:31:26.482Z,3
+b22edad5-f35a-4475-81d4-5a5691622d0a,q-algo-tree-1,,false,2026-07-23T17:31:26.482Z,4
+b22edad5-f35a-4475-81d4-5a5691622d0a,q-apt-spd-1,,false,2026-07-23T17:31:26.482Z,5
+b22edad5-f35a-4475-81d4-5a5691622d0a,q-algo-srch-1,,false,2026-07-23T17:31:26.482Z,6
+b22edad5-f35a-4475-81d4-5a5691622d0a,q-fe-css-2,,false,2026-07-23T17:31:26.482Z,7
+b22edad5-f35a-4475-81d4-5a5691622d0a,q-algo-ds-2,,false,2026-07-23T17:31:26.482Z,8
+b22edad5-f35a-4475-81d4-5a5691622d0a,q-db-sql-2,,false,2026-07-23T17:31:26.482Z,9
+b22edad5-f35a-4475-81d4-5a5691622d0a,q-apt-spd-2,,false,2026-07-23T17:31:26.482Z,10

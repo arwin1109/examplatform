@@ -36,9 +36,16 @@ export async function POST(
 
   const answers = await storageProvider.getAttemptAnswers(attemptId);
   const score = calculateScore(answers);
+  
+  // If candidate submitted status as completed but answered fewer than total questions, resolve status to ended_early
+  const finalStatus =
+    payload.status === "completed" && answers.length < attempt.totalQuestions
+      ? "ended_early"
+      : payload.status;
+
   const updatedAttempt = await storageProvider.updateAttempt(attemptId, {
     endedAt: new Date().toISOString(),
-    status: payload.status,
+    status: finalStatus,
     score,
     answeredQuestions: answers.length,
   });

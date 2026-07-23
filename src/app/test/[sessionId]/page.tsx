@@ -276,20 +276,26 @@ export default async function CandidateTestPage(
             <h1 className="mt-3 text-4xl font-semibold text-[var(--foreground)]">
               {session.title}
             </h1>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-[1.25rem] border border-[var(--line)] bg-white/85 p-4">
-                <p className="text-sm text-[var(--muted)]">Candidate</p>
-                <p className="mt-2 text-xl font-semibold text-[var(--foreground)]">{attempt.name}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Candidate</p>
+                <p className="mt-2 text-lg font-semibold text-[var(--foreground)]">{attempt.name}</p>
               </div>
               <div className="rounded-[1.25rem] border border-[var(--line)] bg-white/85 p-4">
-                <p className="text-sm text-[var(--muted)]">Status</p>
-                <p className="mt-2 text-xl font-semibold capitalize text-[var(--foreground)]">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Status</p>
+                <p className="mt-2 text-lg font-semibold capitalize text-[var(--foreground)]">
                   {formatStatusLabel(attempt.status)}
                 </p>
               </div>
               <div className="rounded-[1.25rem] border border-[var(--line)] bg-white/85 p-4">
-                <p className="text-sm text-[var(--muted)]">Score</p>
-                <p className="mt-2 text-xl font-semibold text-[var(--foreground)]">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Answered Questions</p>
+                <p className="mt-2 text-lg font-semibold text-[var(--foreground)]">
+                  {savedAnswers.length} / {attempt.totalQuestions}
+                </p>
+              </div>
+              <div className="rounded-[1.25rem] border border-[var(--line)] bg-white/85 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Total Score</p>
+                <p className="mt-2 text-lg font-semibold text-[var(--accent-deep)]">
                   {score} / {attempt.totalQuestions}
                 </p>
               </div>
@@ -297,37 +303,62 @@ export default async function CandidateTestPage(
           </section>
 
           <section className="rounded-[2rem] border border-[var(--line)] bg-[var(--panel-strong)] p-8">
-            <h2 className="text-2xl font-semibold text-[var(--foreground)]">Answer review</h2>
+            <h2 className="text-2xl font-semibold text-[var(--foreground)]">Answer Review</h2>
             <div className="mt-6 grid gap-4">
               {orderedQuestions.map((question, index) => {
                 const savedAnswer = savedAnswers.find(
                   (answer) => answer.questionId === question.id,
                 );
                 const resolvedQuestion = questionLookup.get(question.id) ?? question;
+                const hasAnswered = Boolean(savedAnswer?.selectedAnswer);
+                const isCorrect = hasAnswered && savedAnswer?.selectedAnswer === resolvedQuestion.correctAnswer;
 
                 return (
                   <article
                     key={question.id}
-                    className="rounded-[1.5rem] border border-[var(--line)] bg-white/85 p-5"
+                    className="rounded-[1.5rem] border border-[var(--line)] bg-white/85 p-5 shadow-xs"
                   >
-                    <p className="text-sm font-semibold text-[var(--accent-deep)]">
-                      Question {index + 1}
-                    </p>
-                    <h3 className="mt-2 text-lg font-semibold text-[var(--foreground)]">
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                      <p className="text-xs font-bold uppercase tracking-wider text-[var(--accent-deep)]">
+                        Question {index + 1} ({resolvedQuestion.category} • {resolvedQuestion.topic})
+                      </p>
+                      <span
+                        className={`rounded-full px-3 py-0.5 text-xs font-bold ${
+                          !hasAnswered
+                            ? "bg-slate-100 text-slate-600 border border-slate-300"
+                            : isCorrect
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                            : "bg-rose-100 text-rose-800 border border-rose-300"
+                        }`}
+                      >
+                        {!hasAnswered ? "Skipped" : isCorrect ? "Correct" : "Incorrect"}
+                      </span>
+                    </div>
+
+                    <h3 className="text-base font-semibold text-[var(--foreground)]">
                       {resolvedQuestion.questionText}
                     </h3>
-                    <p className="mt-3 text-sm text-[var(--muted)]">
-                      Your answer:{" "}
-                      <span className="font-semibold text-[var(--foreground)]">
-                        {savedAnswer?.selectedAnswer ?? "Not answered"}
-                      </span>
-                    </p>
-                    <p className="mt-1 text-sm text-[var(--muted)]">
-                      Correct answer:{" "}
-                      <span className="font-semibold text-[var(--foreground)]">
-                        {resolvedQuestion.correctAnswer}
-                      </span>
-                    </p>
+
+                    <div className="mt-3 grid gap-1.5 text-xs sm:grid-cols-2">
+                      <p className="rounded-lg bg-slate-50 px-3 py-2 text-[var(--muted)]">
+                        Your Answer:{" "}
+                        <span
+                          className={`font-semibold ${
+                            !hasAnswered
+                              ? "text-slate-500 italic"
+                              : isCorrect
+                              ? "text-emerald-700"
+                              : "text-rose-700"
+                          }`}
+                        >
+                          {savedAnswer?.selectedAnswer ?? "Not answered (Skipped)"}
+                        </span>
+                      </p>
+                      <p className="rounded-lg bg-emerald-50/60 px-3 py-2 text-emerald-900 font-medium">
+                        Correct Answer:{" "}
+                        <span className="font-bold">{resolvedQuestion.correctAnswer}</span>
+                      </p>
+                    </div>
                   </article>
                 );
               })}

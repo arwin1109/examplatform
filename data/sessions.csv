@@ -1,4 +1,5 @@
-sessionId,title,questionCount,timeLimitMinutes,createdBy,createdAt,isActive
-frontend-basics-demo,Frontend Basics Assessment,15,20,admin@exam-platform.local,2026-07-22T08:30:00.000Z,false
-test,Test Session,10,15,admin@exam-platform.local,2026-07-22T22:24:52.839Z,false
-frontend-basics-assessment,Frontend Basics Assessment,10,20,admin,2026-07-23T17:13:21.045Z,true
+sessionId,title,questionCount,timeLimitMinutes,createdBy,createdAt,isActive,selectedCategories,selectedTopics
+frontend-basics-demo,Frontend Basics Assessment,15,20,admin@exam-platform.local,2026-07-22T08:30:00.000Z,false,,
+test,Test Session,10,15,admin@exam-platform.local,2026-07-22T22:24:52.839Z,false,,
+frontend-basics-assessment,Frontend Basics Assessment,10,20,admin,2026-07-23T17:13:21.045Z,true,,
+full-stack,Full stack,10,20,admin,2026-07-23T17:30:21.247Z,true,"[""Backend"",""Frontend"",""Database""]","[""Node.js"",""REST API"",""Security"",""HTTP & Web APIs"",""HTML"",""JavaScript"",""React"",""CSS"",""SQL Joins"",""Indexing"",""Database Constraints""]"
