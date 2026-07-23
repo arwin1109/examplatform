@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
@@ -12,6 +13,7 @@ import {
   requireAdminSession,
   verifyAdminCredentials,
 } from "@/lib/auth/session";
+import { sendOutlookEmail, testOutlookConnection } from "@/lib/email/outlook";
 import { buildAttemptQuestionSet, slugifySessionId } from "@/lib/exam";
 import { getStorageProvider } from "@/lib/storage";
 import type { QuestionDifficulty } from "@/lib/storage/types";
@@ -681,3 +683,344 @@ export async function startAttemptAction(formData: FormData) {
   revalidatePath("/admin/results");
   redirect(`/test/${sessionId}?attemptId=${attemptId}`);
 }
+
+export async function addEmailConfigAction(formData: FormData) {
+  await requireAdminSession();
+
+  const emailAddress = normalizeEmail(getTextField(formData, "emailAddress"));
+  const applicationId = getTextField(formData, "applicationId");
+  const tenantId = getTextField(formData, "tenantId");
+  const clientSecret = getTextField(formData, "clientSecret");
+
+  if (!emailAddress || !applicationId || !tenantId || !clientSecret) {
+    redirect(
+      buildRedirectPath(
+        "/admin/settings",
+        "error",
+        "All email configuration fields are required.",
+      ),
+    );
+  }
+
+  try {
+    const storageProvider = await getStorageProvider();
+    await storageProvider.addEmailConfig({
+      emailAddress,
+      applicationId,
+      tenantId,
+      clientSecret,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to add email configuration.";
+    redirect(buildRedirectPath("/admin/settings", "error", message));
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/settings");
+  revalidatePath("/admin/sessions");
+  redirect(
+    buildRedirectPath(
+      "/admin/settings",
+      "success",
+      `Outlook email configuration for ${emailAddress} added successfully.`,
+    ),
+  );
+}
+
+export async function updateEmailConfigAction(formData: FormData) {
+  await requireAdminSession();
+
+  const id = getTextField(formData, "id");
+  const emailAddress = normalizeEmail(getTextField(formData, "emailAddress"));
+  const applicationId = getTextField(formData, "applicationId");
+  const tenantId = getTextField(formData, "tenantId");
+  const clientSecret = getTextField(formData, "clientSecret");
+
+  if (!id || !emailAddress || !applicationId || !tenantId || !clientSecret) {
+    redirect(
+      buildRedirectPath(
+        "/admin/settings",
+        "error",
+        "All email configuration fields are required.",
+      ),
+    );
+  }
+
+  try {
+    const storageProvider = await getStorageProvider();
+    const updated = await storageProvider.updateEmailConfig(id, {
+      emailAddress,
+      applicationId,
+      tenantId,
+      clientSecret,
+    });
+
+    if (!updated) {
+      redirect(
+        buildRedirectPath("/admin/settings", "error", "Email configuration not found."),
+      );
+    }
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to update email configuration.";
+    redirect(buildRedirectPath("/admin/settings", "error", message));
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/settings");
+  revalidatePath("/admin/sessions");
+  redirect(
+    buildRedirectPath(
+      "/admin/settings",
+      "success",
+      `Email configuration updated for ${emailAddress}.`,
+    ),
+  );
+}
+
+export async function deleteEmailConfigAction(formData: FormData) {
+  await requireAdminSession();
+
+  const id = getTextField(formData, "id");
+
+  if (!id) {
+    redirect(buildRedirectPath("/admin/settings", "error", "Invalid config ID."));
+  }
+
+  try {
+    const storageProvider = await getStorageProvider();
+    const deleted = await storageProvider.deleteEmailConfig(id);
+
+    if (!deleted) {
+      redirect(
+        buildRedirectPath("/admin/settings", "error", "Email configuration not found."),
+      );
+    }
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to delete email configuration.";
+    redirect(buildRedirectPath("/admin/settings", "error", message));
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/settings");
+  revalidatePath("/admin/sessions");
+  redirect(
+    buildRedirectPath(
+      "/admin/settings",
+      "success",
+      "Email configuration deleted successfully.",
+    ),
+  );
+}
+
+export async function testEmailConfigAction(formData: FormData) {
+  await requireAdminSession();
+
+  const id = getTextField(formData, "id");
+
+  if (!id) {
+    redirect(
+      buildRedirectPath("/admin/settings", "error", "Select an email configuration to test."),
+    );
+  }
+
+  const storageProvider = await getStorageProvider();
+  const config = await storageProvider.getEmailConfig(id);
+
+  if (!config) {
+    redirect(
+      buildRedirectPath("/admin/settings", "error", "Email configuration not found."),
+    );
+  }
+
+  const testResult = await testOutlookConnection(config);
+
+  if (!testResult.success) {
+    redirect(
+      buildRedirectPath(
+        "/admin/settings",
+        "error",
+        `Test failed for ${config.emailAddress}: ${testResult.message}`,
+      ),
+    );
+  }
+
+  redirect(
+    buildRedirectPath(
+      "/admin/settings",
+      "success",
+      testResult.message,
+    ),
+  );
+}
+
+export async function bulkCreateCandidateSessionsAction(formData: FormData) {
+  const session = await requireAdminSession();
+  const storageProvider = await getStorageProvider();
+
+  const titlePrefix = getTextField(formData, "titlePrefix") || "Candidate Aptitude Test";
+  const questionCount = Number(getTextField(formData, "questionCount")) || 10;
+  const timeLimitMinutes = Number(getTextField(formData, "timeLimitMinutes")) || 20;
+  const senderEmailId = getTextField(formData, "senderEmailId");
+  const emailSubjectTemplate =
+    getTextField(formData, "emailSubject") || "Your Aptitude Assessment Test Link - {test_title}";
+  const emailBodyTemplate =
+    getTextField(formData, "emailBody") ||
+    "Hello {candidate_name},\n\nYou have been invited to complete the aptitude assessment: {test_title}.\n\nPlease click the link below to start your test:\n{test_link}\n\nDetails:\n- Time limit: {time_limit} minutes\n- Questions: {question_count}\n\nNote: Once completed or ended, this link will expire.\n\nGood luck!";
+  const sendEmail = getCheckboxValue(formData, "sendEmail");
+
+  const file = formData.get("candidateCsv") as File | null;
+
+  if (!file || file.size === 0) {
+    redirect(
+      buildRedirectPath(
+        "/admin/sessions",
+        "error",
+        "Please select a valid candidate CSV file to upload.",
+      ),
+    );
+  }
+
+  const enabledQuestions = (await storageProvider.getQuestions()).filter(
+    (q) => q.isEnabled,
+  );
+
+  if (questionCount > enabledQuestions.length) {
+    redirect(
+      buildRedirectPath(
+        "/admin/sessions",
+        "error",
+        `Only ${enabledQuestions.length} enabled questions are currently available.`,
+      ),
+    );
+  }
+
+  let emailConfig = null;
+  if (sendEmail && senderEmailId) {
+    emailConfig = await storageProvider.getEmailConfig(senderEmailId);
+    if (!emailConfig) {
+      redirect(
+        buildRedirectPath(
+          "/admin/sessions",
+          "error",
+          "Selected sender email configuration was not found.",
+        ),
+      );
+    }
+  }
+
+  const reqHeaders = await headers();
+  const host = reqHeaders.get("host") || "localhost:3000";
+  const protocol = reqHeaders.get("x-forwarded-proto") || "http";
+  const baseUrl = `${protocol}://${host}`;
+
+  let createdCount = 0;
+  let sentEmailCount = 0;
+  const emailErrors: string[] = [];
+
+  try {
+    const content = await file.text();
+    const records = parse(content, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    }) as Array<Record<string, string>>;
+
+    if (!records || records.length === 0) {
+      throw new Error("Uploaded candidate CSV is empty or has no rows.");
+    }
+
+    for (const row of records) {
+      const candidateName =
+        row.name || row.Name || row["Full Name"] || row.candidate_name || "";
+      const candidateEmail = normalizeEmail(
+        row.email || row.Email || row["Email Address"] || "",
+      );
+      const candidatePhone = normalizePhone(
+        row.phone || row.Phone || row["Phone Number"] || "",
+      );
+
+      if (!candidateName || !candidateEmail) {
+        continue;
+      }
+
+      const nameSlug = slugifySessionId(candidateName) || "candidate";
+      const baseSessionId = `test-${nameSlug}-${uuidv4().slice(0, 6)}`;
+
+      const uniqueSessionId =
+        (await storageProvider.getSession(baseSessionId)) === null
+          ? baseSessionId
+          : `${baseSessionId}-${uuidv4().slice(0, 4)}`;
+
+      const sessionTitle = `${titlePrefix} - ${candidateName}`;
+
+      await storageProvider.createSession({
+        sessionId: uniqueSessionId,
+        title: sessionTitle,
+        questionCount,
+        timeLimitMinutes,
+        createdBy: session.email,
+        isActive: true,
+      });
+
+      createdCount++;
+
+      const testLink = `${baseUrl}/test/${uniqueSessionId}`;
+
+      if (sendEmail && emailConfig) {
+        const formatVariables = (str: string) =>
+          str
+            .replaceAll("{candidate_name}", candidateName)
+            .replaceAll("{candidate_email}", candidateEmail)
+            .replaceAll("{candidate_phone}", candidatePhone)
+            .replaceAll("{test_title}", sessionTitle)
+            .replaceAll("{test_link}", testLink)
+            .replaceAll("{time_limit}", String(timeLimitMinutes))
+            .replaceAll("{question_count}", String(questionCount));
+
+        const subject = formatVariables(emailSubjectTemplate);
+        const body = formatVariables(emailBodyTemplate);
+
+        try {
+          await sendOutlookEmail({
+            config: emailConfig,
+            to: candidateEmail,
+            subject,
+            body,
+          });
+          sentEmailCount++;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Unknown email error";
+          emailErrors.push(`${candidateEmail} (${msg})`);
+        }
+      }
+    }
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unable to process candidate CSV.";
+    redirect(buildRedirectPath("/admin/sessions", "error", message));
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/admin/sessions");
+
+  let noticeMessage = `${createdCount} candidate session link${createdCount === 1 ? "" : "s"} created successfully.`;
+  if (sendEmail && emailConfig) {
+    noticeMessage += ` ${sentEmailCount} email invitation${sentEmailCount === 1 ? "" : "s"} dispatched via ${emailConfig.emailAddress}.`;
+    if (emailErrors.length > 0) {
+      noticeMessage += ` (${emailErrors.length} email delivery warnings: ${emailErrors.join(", ")})`;
+    }
+  }
+
+  redirect(
+    buildRedirectPath(
+      "/admin/sessions",
+      emailErrors.length > 0 ? "notice" : "success",
+      noticeMessage,
+    ),
+  );
+}
+

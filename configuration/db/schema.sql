@@ -71,6 +71,17 @@ CREATE TABLE IF NOT EXISTS admins (
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Outlook Email Configurations Table
+CREATE TABLE IF NOT EXISTS email_configs (
+  id VARCHAR(255) PRIMARY KEY,
+  email_address VARCHAR(255) NOT NULL,
+  application_id VARCHAR(255) NOT NULL,
+  tenant_id VARCHAR(255) NOT NULL,
+  client_secret TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_questions_enabled ON questions(is_enabled);
 CREATE INDEX IF NOT EXISTS idx_attempts_session_id ON attempts(session_id);
@@ -78,6 +89,7 @@ CREATE INDEX IF NOT EXISTS idx_attempts_status ON attempts(status);
 CREATE INDEX IF NOT EXISTS idx_attempts_started_at ON attempts(started_at DESC);
 CREATE INDEX IF NOT EXISTS idx_attempt_answers_attempt ON attempt_answers(attempt_id);
 CREATE INDEX IF NOT EXISTS idx_admins_email ON admins(LOWER(email));
+CREATE INDEX IF NOT EXISTS idx_email_configs_email ON email_configs(LOWER(email_address));
 
 -- Initial Seed Data
 INSERT INTO settings (id, storage_provider, postgres_configured)

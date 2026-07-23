@@ -68,8 +68,27 @@ This document tracks the implementation state of the repository as of Wednesday,
 
 ---
 
+## 8. Candidate Link & Email Management Tasks
+- [x] **Session Link Expiration**: Added expiration check on `/test/[sessionId]` to show expired screen if session is inactive or attempt is completed/ended.
+- [x] **Bulk Candidate CSV Import**: Provided downloadable `candidate_template.csv` with a download icon button and CSV upload processor for generating individual candidate test links.
+- [x] **Email Customization & Automated Dispatch**: Added Email Subject Name and Email Body template fields with placeholder variable support (`{candidate_name}`, `{test_link}`, `{time_limit}`, `{question_count}`) below session creation, sending automated emails to candidates upon link creation.
+- [x] **Outlook Email Configurations in Settings**: Added editable tabular Outlook email configuration management in `/admin/settings` (Application ID, Tenant ID, Client Secret, Email Address) with a "Test Configuration" button for Graph API OAuth token verification and sender dropdown selector.
+
+---
+
+## 9. Phase Completion Summary (July 2026)
+
+- [x] **Storage Layer**: Added `EmailConfig` model and CRUD methods across `types.ts`, `csv-provider.ts`, and `postgres-provider.ts`.
+- [x] **Microsoft Graph Integration**: Implemented `src/lib/email/outlook.ts` supporting OAuth 2.0 token acquisition and mail dispatch.
+- [x] **Link Expiration Guard**: Updated candidate test route `/test/[sessionId]` to block completed/ended/deactivated attempts with an Expired screen.
+- [x] **Bulk Session Creation & CSV Import**: Implemented candidate CSV template download route (`/api/admin/candidate-template`) and bulk link creation action (`bulkCreateCandidateSessionsAction`).
+- [x] **Outlook Email Settings UI**: Added tabular editable interface in `/admin/settings` with live connection testing and add/edit/delete functionality.
+- [x] **Build Verification**: Verified clean compilation with `npm run build`.
+
+---
+
 ## Notes
 
-- Runtime smoke checks were attempted locally, but the shell-level HTTP verification did not complete successfully in this session.
-- `npm run lint` and `npm run build` both passed on Wednesday, July 22, 2026.
-- Manual browser walkthroughs are still recommended for final UX validation across the admin and candidate flows.
+- `npm run lint` and `npm run build` both passed successfully.
+- Manual browser walkthroughs are recommended for testing live Microsoft Graph API client credential credentials.
+

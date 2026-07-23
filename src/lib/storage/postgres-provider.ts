@@ -6,6 +6,7 @@ import type {
   AppSettings,
   Attempt,
   AttemptAnswer,
+  EmailConfig,
   Question,
   QuestionDifficulty,
   StorageProvider,
@@ -135,6 +136,16 @@ export class PostgresStorageProvider implements StorageProvider {
           email VARCHAR(255) UNIQUE NOT NULL,
           password_hash TEXT NOT NULL,
           created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS email_configs (
+          id VARCHAR(255) PRIMARY KEY,
+          email_address VARCHAR(255) NOT NULL,
+          application_id VARCHAR(255) NOT NULL,
+          tenant_id VARCHAR(255) NOT NULL,
+          client_secret TEXT NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
 
         INSERT INTO settings (id, storage_provider, postgres_configured)
@@ -554,6 +565,100 @@ export class PostgresStorageProvider implements StorageProvider {
     };
   }
 
+  // --- Email Configs ---
+
+  async getEmailConfigs(): Promise<EmailConfig[]> {
+    await this.ensureInitialized();
+    const result = await this.getPool().query(
+      "SELECT * FROM email_configs ORDER BY created_at DESC",
+    );
+    return result.rows.map(this.mapEmailConfigRow);
+  }
+
+  async getEmailConfig(id: string): Promise<EmailConfig | null> {
+    await this.ensureInitialized();
+    const result = await this.getPool().query(
+      "SELECT * FROM email_configs WHERE id = $1",
+      [id],
+    );
+    if (result.rows.length === 0) return null;
+    return this.mapEmailConfigRow(result.rows[0]);
+  }
+
+  async addEmailConfig(
+    config: Omit<EmailConfig, "id" | "createdAt" | "updatedAt">,
+  ): Promise<EmailConfig> {
+    await this.ensureInitialized();
+    const id = uuidv4();
+    const now = new Date().toISOString();
+
+    await this.getPool().query(
+      `INSERT INTO email_configs (id, email_address, application_id, tenant_id, client_secret, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        id,
+        config.emailAddress.trim().toLowerCase(),
+        config.applicationId.trim(),
+        config.tenantId.trim(),
+        config.clientSecret.trim(),
+        now,
+        now,
+      ],
+    );
+
+    return {
+      id,
+      emailAddress: config.emailAddress.trim().toLowerCase(),
+      applicationId: config.applicationId.trim(),
+      tenantId: config.tenantId.trim(),
+      clientSecret: config.clientSecret.trim(),
+      createdAt: now,
+      updatedAt: now,
+    };
+  }
+
+  async updateEmailConfig(
+    id: string,
+    updates: Partial<EmailConfig>,
+  ): Promise<EmailConfig | null> {
+    await this.ensureInitialized();
+    const current = await this.getEmailConfig(id);
+    if (!current) return null;
+
+    const next: EmailConfig = {
+      ...current,
+      ...updates,
+      id: current.id,
+      createdAt: current.createdAt,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.getPool().query(
+      `UPDATE email_configs
+       SET email_address = $1, application_id = $2, tenant_id = $3, client_secret = $4, updated_at = $5
+       WHERE id = $6`,
+      [
+        next.emailAddress,
+        next.applicationId,
+        next.tenantId,
+        next.clientSecret,
+        next.updatedAt,
+        id,
+      ],
+    );
+
+    return next;
+  }
+
+  async deleteEmailConfig(id: string): Promise<boolean> {
+    await this.ensureInitialized();
+    const result = await this.getPool().query(
+      "DELETE FROM email_configs WHERE id = $1",
+      [id],
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+
   // --- Row Mappers ---
 
   private mapQuestionRow(row: QueryResultRow): Question {
@@ -632,4 +737,17 @@ export class PostgresStorageProvider implements StorageProvider {
       createdAt: new Date(row.created_at).toISOString(),
     };
   }
+
+  private mapEmailConfigRow(row: QueryResultRow): EmailConfig {
+    return {
+      id: row.id,
+      emailAddress: row.email_address,
+      applicationId: row.application_id,
+      tenantId: row.tenant_id,
+      clientSecret: row.client_secret,
+      createdAt: new Date(row.created_at).toISOString(),
+      updatedAt: new Date(row.updated_at).toISOString(),
+    };
+  }
 }
+

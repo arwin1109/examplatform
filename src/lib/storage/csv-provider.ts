@@ -9,6 +9,7 @@ import type {
   AppSettings,
   Attempt,
   AttemptAnswer,
+  EmailConfig,
   Question,
   QuestionDifficulty,
   StorageProvider,
@@ -21,7 +22,8 @@ type FileKey =
   | "attempts"
   | "attemptAnswers"
   | "settings"
-  | "admins";
+  | "admins"
+  | "emailConfigs";
 
 type CsvRow = Record<string, string>;
 
@@ -309,7 +311,21 @@ const FILE_CONFIG: Record<
     headers: ["id", "name", "email", "passwordHash", "createdAt"],
     seedRows: [],
   },
+  emailConfigs: {
+    fileName: "email-configs.csv",
+    headers: [
+      "id",
+      "emailAddress",
+      "applicationId",
+      "tenantId",
+      "clientSecret",
+      "createdAt",
+      "updatedAt",
+    ],
+    seedRows: [],
+  },
 };
+
 
 function parseBoolean(value: string | undefined): boolean {
   return value === "true";
@@ -811,6 +827,111 @@ export class CsvStorageProvider implements StorageProvider {
       return createdAdmin;
     });
   }
+
+  async getEmailConfigs(): Promise<EmailConfig[]> {
+    await this.ensureInitialized();
+    const rows = await this.readRows("emailConfigs");
+
+    return rows.map((row) => ({
+      id: row.id,
+      emailAddress: row.emailAddress,
+      applicationId: row.applicationId,
+      tenantId: row.tenantId,
+      clientSecret: row.clientSecret,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    }));
+  }
+
+  async getEmailConfig(id: string): Promise<EmailConfig | null> {
+    const configs = await this.getEmailConfigs();
+    return configs.find((config) => config.id === id) ?? null;
+  }
+
+  async addEmailConfig(
+    config: Omit<EmailConfig, "id" | "createdAt" | "updatedAt">,
+  ): Promise<EmailConfig> {
+    return this.enqueueMutation(async () => {
+      const configs = await this.getEmailConfigs();
+      const now = new Date().toISOString();
+      const createdConfig: EmailConfig = {
+        id: uuidv4(),
+        emailAddress: config.emailAddress.trim().toLowerCase(),
+        applicationId: config.applicationId.trim(),
+        tenantId: config.tenantId.trim(),
+        clientSecret: config.clientSecret.trim(),
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      configs.push(createdConfig);
+      await this.writeEmailConfigs(configs);
+
+      return createdConfig;
+    });
+  }
+
+  async updateEmailConfig(
+    id: string,
+    updates: Partial<EmailConfig>,
+  ): Promise<EmailConfig | null> {
+    return this.enqueueMutation(async () => {
+      const configs = await this.getEmailConfigs();
+      const index = configs.findIndex((c) => c.id === id);
+
+      if (index === -1) {
+        return null;
+      }
+
+      const current = configs[index];
+      const updatedConfig: EmailConfig = {
+        ...current,
+        ...updates,
+        id: current.id,
+        createdAt: current.createdAt,
+        updatedAt: new Date().toISOString(),
+        emailAddress: updates.emailAddress?.trim().toLowerCase() ?? current.emailAddress,
+        applicationId: updates.applicationId?.trim() ?? current.applicationId,
+        tenantId: updates.tenantId?.trim() ?? current.tenantId,
+        clientSecret: updates.clientSecret?.trim() ?? current.clientSecret,
+      };
+
+      configs[index] = updatedConfig;
+      await this.writeEmailConfigs(configs);
+
+      return updatedConfig;
+    });
+  }
+
+  async deleteEmailConfig(id: string): Promise<boolean> {
+    return this.enqueueMutation(async () => {
+      const configs = await this.getEmailConfigs();
+      const filtered = configs.filter((c) => c.id !== id);
+
+      if (filtered.length === configs.length) {
+        return false;
+      }
+
+      await this.writeEmailConfigs(filtered);
+      return true;
+    });
+  }
+
+  private async writeEmailConfigs(configs: EmailConfig[]) {
+    await this.writeRows(
+      "emailConfigs",
+      configs.map((c) => ({
+        id: c.id,
+        emailAddress: c.emailAddress,
+        applicationId: c.applicationId,
+        tenantId: c.tenantId,
+        clientSecret: c.clientSecret,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+      })),
+    );
+  }
+
 
   private async getAllAttemptAnswers(): Promise<AttemptAnswer[]> {
     await this.ensureInitialized();

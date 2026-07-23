@@ -56,6 +56,16 @@ export interface AdminUser {
   createdAt: string;
 }
 
+export interface EmailConfig {
+  id: string;
+  emailAddress: string;
+  applicationId: string;
+  tenantId: string;
+  clientSecret: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppSettings {
   storageProvider: 'csv' | 'postgres';
   postgresConfigured: boolean;
@@ -87,6 +97,13 @@ export interface StorageProvider {
   getAttemptAnswers(attemptId: string): Promise<AttemptAnswer[]>;
   saveAttemptAnswer(answer: AttemptAnswer): Promise<void>;
 
+  // Email Configs
+  getEmailConfigs(): Promise<EmailConfig[]>;
+  getEmailConfig(id: string): Promise<EmailConfig | null>;
+  addEmailConfig(config: Omit<EmailConfig, 'id' | 'createdAt' | 'updatedAt'>): Promise<EmailConfig>;
+  updateEmailConfig(id: string, updates: Partial<EmailConfig>): Promise<EmailConfig | null>;
+  deleteEmailConfig(id: string): Promise<boolean>;
+
   // Settings
   getSettings(): Promise<AppSettings>;
   updateSettings(settings: Partial<AppSettings>): Promise<AppSettings>;
@@ -96,3 +113,4 @@ export interface StorageProvider {
   getAdminByEmail(email: string): Promise<AdminUser | null>;
   createAdminUser(admin: Omit<AdminUser, 'id' | 'createdAt'>): Promise<AdminUser>;
 }
+

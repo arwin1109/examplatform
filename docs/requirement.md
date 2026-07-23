@@ -402,3 +402,25 @@ Based on the current repository state at the time this document was written:
 - CSV is the immediate working storage target.
 - PostgreSQL should be treated as a migration-ready target, not necessarily fully operational on day one.
 - The implementation should prioritize clean abstractions so the storage backend can change without large UI changes.
+
+---
+
+## 13. Additional Requirements & Feature Enhancements
+
+### 13.1 Expired Session Links
+- If a test session is completed, ended early, timed out, or deactivated (`isActive: false`), accessing the test link `/test/[sessionId]` must show an **Expired** screen blocking access.
+
+### 13.2 Bulk Candidate Test Link Creation & CSV Import
+- Provide an option to create test links for multiple candidates at once via CSV upload (`name,email,phone`).
+- Provide a downloadable **CSV template** with a clear **download icon**.
+
+### 13.3 Customizable Invitation Email Options
+- Below the create test links form, include input fields for **Email Subject Name** and **Email Body**.
+- Support dynamic placeholder template variables (`{candidate_name}`, `{test_link}`, `{test_title}`, `{time_limit}`, `{question_count}`).
+- Automatically send invitation emails to candidates upon session link generation.
+
+### 13.4 Outlook Email Configuration Management in Settings
+- In `/admin/settings`, add an **Outlook Email Configurations** section listing configured email accounts in an editable tabular format.
+- Require fields: Email Address, Application ID (Client ID), Tenant ID, Client Secret.
+- Provide a **Test Configuration** button to verify Microsoft Graph OAuth 2.0 client credential token acquisition.
+- Include a **Sender Email Dropdown** on session creation forms to pick any configured email sender.

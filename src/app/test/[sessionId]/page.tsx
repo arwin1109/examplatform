@@ -50,19 +50,63 @@ export default async function CandidateTestPage(
     );
   }
 
-  if (!session.isActive) {
+  const attempts = await storageProvider.getAttempts(sessionId);
+  const completedOrEndedAttempt = attempts.find(
+    (attempt) =>
+      attempt.status === "completed" ||
+      attempt.status === "ended_early" ||
+      attempt.status === "timed_out",
+  );
+
+  if (!session.isActive || completedOrEndedAttempt) {
+    const reasonText = !session.isActive
+      ? "This test session link has been deactivated by the administrator."
+      : "This assessment link has expired because the test was already completed or ended.";
+
     return (
       <main className="mx-auto flex w-full max-w-4xl flex-1 items-center px-6 py-10">
-        <section className="w-full rounded-[2rem] border border-[var(--line)] bg-[var(--panel-strong)] p-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--accent-deep)]">
-            Session inactive
+        <section className="w-full rounded-[2rem] border border-[var(--line)] bg-[var(--panel-strong)] p-8 text-center shadow-lg">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+            <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.3em] text-rose-600">
+            Session Link Expired
           </p>
-          <h1 className="mt-3 text-3xl font-semibold text-[var(--foreground)]">
-            This test session is currently inactive.
+          <h1 className="mt-2 text-3xl font-semibold text-[var(--foreground)]">
+            Test Link Expired
           </h1>
-          <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
-            Please contact the admin if you expected this assessment to be available.
+          <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
+            {reasonText}
           </p>
+          {completedOrEndedAttempt ? (
+            <div className="mx-auto mt-6 max-w-md rounded-2xl border border-[var(--line)] bg-white/90 p-4 text-left text-xs leading-6 text-[var(--muted)]">
+              <p>
+                <span className="font-semibold text-[var(--foreground)]">Candidate:</span>{" "}
+                {completedOrEndedAttempt.name} ({completedOrEndedAttempt.email})
+              </p>
+              <p>
+                <span className="font-semibold text-[var(--foreground)]">Status:</span>{" "}
+                <span className="capitalize">{formatStatusLabel(completedOrEndedAttempt.status)}</span>
+              </p>
+              <p>
+                <span className="font-semibold text-[var(--foreground)]">Submitted:</span>{" "}
+                {completedOrEndedAttempt.endedAt ? formatDateTime(completedOrEndedAttempt.endedAt) : "Completed"}
+              </p>
+            </div>
+          ) : null}
+          <Link
+            href="/"
+            className="mt-6 inline-flex text-sm font-semibold text-[var(--accent-deep)] transition hover:underline"
+          >
+            Back to home
+          </Link>
         </section>
       </main>
     );

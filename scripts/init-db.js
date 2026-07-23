@@ -179,6 +179,7 @@ async function runStorageInit() {
       'attempts.csv': 'attemptId,sessionId,name,email,phone,startedAt,endedAt,status,score,totalQuestions,answeredQuestions\n',
       'attempt-answers.csv': 'attemptId,questionId,selectedAnswer,isCorrect,answeredAt,questionOrder\n',
       'admins.csv': 'id,name,email,passwordHash,createdAt\n',
+      'email-configs.csv': 'id,emailAddress,applicationId,tenantId,clientSecret,createdAt,updatedAt\n',
       'settings.csv': 'storageProvider,postgresConfigured\ncsv,false\n',
     };
 
