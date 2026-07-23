@@ -264,6 +264,33 @@ export function SessionTabs({ enabledQuestionCount, emailConfigs }: SessionTabsP
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-1.5">
+              <label htmlFor="candidateName" className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]">
+                Candidate Name <span className="text-[var(--muted)] font-normal">(Optional)</span>
+              </label>
+              <input
+                id="candidateName"
+                name="candidateName"
+                className="rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--accent-deep)]"
+                placeholder="e.g. John Doe"
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <label htmlFor="candidateEmail" className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]">
+                Candidate Email Address <span className="text-[var(--muted)] font-normal">(Optional)</span>
+              </label>
+              <input
+                id="candidateEmail"
+                name="candidateEmail"
+                type="email"
+                className="rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--accent-deep)]"
+                placeholder="e.g. candidate@company.com"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-1.5">
               <label htmlFor="questionCount" className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]">
                 Question Count
               </label>
@@ -293,6 +320,80 @@ export function SessionTabs({ enabledQuestionCount, emailConfigs }: SessionTabsP
                 className="rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--accent-deep)]"
               />
             </div>
+          </div>
+
+          {/* Email Settings Box for Single Session */}
+          <div className="rounded-2xl border border-[var(--line)] bg-white/90 p-5 grid gap-4">
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
+              <label htmlFor="singleSenderEmailId" className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]">
+                Sender Outlook Email
+              </label>
+              {emailConfigs.length === 0 ? (
+                <Link href="/admin/settings" className="text-xs font-semibold text-rose-600 hover:underline">
+                  ⚠️ No emails configured. Add in Settings →
+                </Link>
+              ) : (
+                <span className="text-xs text-[var(--muted)]">{emailConfigs.length} configured email(s) available</span>
+              )}
+            </div>
+
+            <select
+              id="singleSenderEmailId"
+              name="senderEmailId"
+              className="rounded-xl border border-[var(--line)] bg-white px-4 py-2.5 text-sm outline-none transition focus:border-[var(--accent-deep)]"
+            >
+              {emailConfigs.length === 0 ? (
+                <option value="">No configured Outlook emails available</option>
+              ) : (
+                emailConfigs.map((config) => (
+                  <option key={config.id} value={config.id}>
+                    {config.emailAddress} ({config.authType === "delegated" ? "Delegated" : "Application"})
+                  </option>
+                ))
+              )}
+            </select>
+
+            <div className="grid gap-1.5">
+              <label htmlFor="singleEmailSubject" className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]">
+                Email Subject Line
+              </label>
+              <input
+                id="singleEmailSubject"
+                name="emailSubject"
+                defaultValue="Your Aptitude Assessment Test Link - {test_title}"
+                className="rounded-xl border border-[var(--line)] bg-white px-4 py-2.5 text-sm outline-none transition focus:border-[var(--accent-deep)]"
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <div className="flex flex-wrap items-center justify-between gap-1">
+                <label htmlFor="singleEmailBody" className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]">
+                  Email Body Content
+                </label>
+                <div className="flex flex-wrap gap-1 text-[10px]">
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">{`{candidate_name}`}</span>
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">{`{test_link}`}</span>
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">{`{time_limit}`}</span>
+                </div>
+              </div>
+              <textarea
+                id="singleEmailBody"
+                name="emailBody"
+                rows={4}
+                defaultValue={`Hello {candidate_name},\n\nYou have been invited to complete the aptitude assessment: {test_title}.\n\nPlease click the link below to start your test:\n{test_link}\n\nDetails:\n- Time Limit: {time_limit} minutes\n- Questions: {question_count}\n\nNote: Once completed or ended, this link will automatically expire.\n\nGood luck!`}
+                className="rounded-xl border border-[var(--line)] bg-white px-4 py-2.5 font-mono text-xs leading-5 outline-none transition focus:border-[var(--accent-deep)]"
+              />
+            </div>
+
+            <label className="inline-flex items-center gap-3 text-xs font-semibold text-[var(--foreground)]">
+              <input
+                type="checkbox"
+                name="sendEmail"
+                defaultChecked={emailConfigs.length > 0}
+                className="h-4 w-4 rounded border-gray-300 text-[var(--accent)]"
+              />
+              Send invitation email automatically if candidate email address is entered
+            </label>
           </div>
 
           <label className="inline-flex items-center gap-3 text-xs font-semibold text-[var(--foreground)]">

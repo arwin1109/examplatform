@@ -451,6 +451,15 @@ export async function createSessionAction(formData: FormData) {
   const questionCount = Number(getTextField(formData, "questionCount"));
   const timeLimitMinutes = Number(getTextField(formData, "timeLimitMinutes"));
   const isActive = getCheckboxValue(formData, "isActive");
+  const candidateName = getTextField(formData, "candidateName");
+  const candidateEmail = normalizeEmail(getTextField(formData, "candidateEmail"));
+  const senderEmailId = getTextField(formData, "senderEmailId");
+  const emailSubjectTemplate =
+    getTextField(formData, "emailSubject") || "Your Aptitude Assessment Test Link - {test_title}";
+  const emailBodyTemplate =
+    getTextField(formData, "emailBody") ||
+    "Hello {candidate_name},\n\nYou have been invited to complete the aptitude assessment: {test_title}.\n\nPlease click the link below to start your test:\n{test_link}\n\nDetails:\n- Time limit: {time_limit} minutes\n- Questions: {question_count}\n\nNote: Once completed or ended, this link will expire.\n\nGood luck!";
+  const sendEmail = getCheckboxValue(formData, "sendEmail");
 
   const enabledQuestions = (await storageProvider.getQuestions()).filter(
     (question) => question.isEnabled,
@@ -488,6 +497,45 @@ export async function createSessionAction(formData: FormData) {
     redirect(buildRedirectPath("/admin/sessions", "error", message));
   }
 
+  let emailNote = "";
+  if (candidateEmail && sendEmail) {
+    const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const testLink = `${origin}/test/${uniqueSessionId}`;
+    const emailConfigs = await storageProvider.getEmailConfigs();
+    const emailConfig =
+      emailConfigs.find((c) => c.id === senderEmailId) || emailConfigs[0];
+
+    if (emailConfig) {
+      try {
+        const subject = emailSubjectTemplate
+          .replace(/{candidate_name}/g, candidateName || candidateEmail)
+          .replace(/{test_title}/g, title)
+          .replace(/{time_limit}/g, String(timeLimitMinutes))
+          .replace(/{question_count}/g, String(questionCount))
+          .replace(/{test_link}/g, testLink);
+
+        const body = emailBodyTemplate
+          .replace(/{candidate_name}/g, candidateName || candidateEmail)
+          .replace(/{test_title}/g, title)
+          .replace(/{time_limit}/g, String(timeLimitMinutes))
+          .replace(/{question_count}/g, String(questionCount))
+          .replace(/{test_link}/g, testLink);
+
+        await sendOutlookEmail({
+          config: emailConfig,
+          to: candidateEmail,
+          subject,
+          body,
+        });
+
+        emailNote = ` Invitation email dispatched to ${candidateEmail}.`;
+      } catch (err) {
+        const detail = err instanceof Error ? err.message : "Mail dispatch failed";
+        emailNote = ` (Email warning: ${detail})`;
+      }
+    }
+  }
+
   revalidatePath("/");
   revalidatePath("/admin");
   revalidatePath("/admin/sessions");
@@ -495,7 +543,7 @@ export async function createSessionAction(formData: FormData) {
     buildRedirectPath(
       "/admin/sessions",
       "success",
-      `Session created. Test link: /test/${uniqueSessionId}`,
+      `Session created. Test link: /test/${uniqueSessionId}.${emailNote}`,
     ),
   );
 }
