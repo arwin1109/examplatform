@@ -442,6 +442,78 @@ export async function deleteQuestionAction(formData: FormData) {
   redirect(buildRedirectPath("/admin/questions", "success", "Question deleted."));
 }
 
+export async function bulkUpdateQuestionsAction(formData: FormData) {
+  await requireAdminSession();
+
+  const storageProvider = await getStorageProvider();
+  const rawIds = getTextField(formData, "questionIds");
+  const actionType = getTextField(formData, "actionType");
+
+  if (!rawIds) {
+    redirect(buildRedirectPath("/admin/questions", "error", "No questions selected."));
+  }
+
+  let ids: string[] = [];
+  try {
+    ids = JSON.parse(rawIds);
+  } catch {
+    ids = rawIds.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+
+  if (ids.length === 0) {
+    redirect(buildRedirectPath("/admin/questions", "error", "No valid question IDs selected."));
+  }
+
+  const isEnabled = actionType === "enable";
+  const updatedCount = await storageProvider.bulkUpdateQuestionStatus(ids, isEnabled);
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/admin/questions");
+  redirect(
+    buildRedirectPath(
+      "/admin/questions",
+      "success",
+      `${updatedCount} question(s) ${isEnabled ? "enabled" : "disabled"} successfully.`,
+    ),
+  );
+}
+
+export async function bulkDeleteQuestionsAction(formData: FormData) {
+  await requireAdminSession();
+
+  const storageProvider = await getStorageProvider();
+  const rawIds = getTextField(formData, "questionIds");
+
+  if (!rawIds) {
+    redirect(buildRedirectPath("/admin/questions", "error", "No questions selected."));
+  }
+
+  let ids: string[] = [];
+  try {
+    ids = JSON.parse(rawIds);
+  } catch {
+    ids = rawIds.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+
+  if (ids.length === 0) {
+    redirect(buildRedirectPath("/admin/questions", "error", "No valid question IDs selected."));
+  }
+
+  const deletedCount = await storageProvider.bulkDeleteQuestions(ids);
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/admin/questions");
+  redirect(
+    buildRedirectPath(
+      "/admin/questions",
+      "success",
+      `${deletedCount} question(s) deleted successfully.`,
+    ),
+  );
+}
+
 export async function createSessionAction(formData: FormData) {
   const session = await requireAdminSession();
   const storageProvider = await getStorageProvider();

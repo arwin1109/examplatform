@@ -84,6 +84,8 @@ export interface StorageProvider {
   updateQuestion(id: string, updates: Partial<Question>): Promise<Question | null>;
   deleteQuestion(id: string): Promise<boolean>;
   toggleQuestion(id: string): Promise<Question | null>;
+  bulkUpdateQuestionStatus(ids: string[], isEnabled: boolean): Promise<number>;
+  bulkDeleteQuestions(ids: string[]): Promise<number>;
 
   // Sessions
   getSessions(): Promise<TestSession[]>;

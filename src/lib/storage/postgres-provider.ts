@@ -279,6 +279,27 @@ export class PostgresStorageProvider implements StorageProvider {
     return this.updateQuestion(id, { isEnabled: !current.isEnabled });
   }
 
+  async bulkUpdateQuestionStatus(ids: string[], isEnabled: boolean): Promise<number> {
+    await this.ensureInitialized();
+    if (ids.length === 0) return 0;
+    const now = new Date().toISOString();
+    const result = await this.getPool().query(
+      "UPDATE questions SET is_enabled = $1, updated_at = $2 WHERE id = ANY($3)",
+      [isEnabled, now, ids],
+    );
+    return result.rowCount ?? 0;
+  }
+
+  async bulkDeleteQuestions(ids: string[]): Promise<number> {
+    await this.ensureInitialized();
+    if (ids.length === 0) return 0;
+    const result = await this.getPool().query(
+      "DELETE FROM questions WHERE id = ANY($1)",
+      [ids],
+    );
+    return result.rowCount ?? 0;
+  }
+
   // --- Sessions ---
 
   async getSessions(): Promise<TestSession[]> {

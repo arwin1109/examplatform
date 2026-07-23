@@ -540,6 +540,44 @@ export class CsvStorageProvider implements StorageProvider {
     });
   }
 
+  async bulkUpdateQuestionStatus(ids: string[], isEnabled: boolean): Promise<number> {
+    return this.enqueueMutation(async () => {
+      const questions = await this.getQuestions();
+      const idSet = new Set(ids);
+      let updatedCount = 0;
+      const now = new Date().toISOString();
+
+      const updatedQuestions = questions.map((q) => {
+        if (idSet.has(q.id)) {
+          updatedCount++;
+          return { ...q, isEnabled, updatedAt: now };
+        }
+        return q;
+      });
+
+      if (updatedCount > 0) {
+        await this.writeQuestions(updatedQuestions);
+      }
+
+      return updatedCount;
+    });
+  }
+
+  async bulkDeleteQuestions(ids: string[]): Promise<number> {
+    return this.enqueueMutation(async () => {
+      const questions = await this.getQuestions();
+      const idSet = new Set(ids);
+      const remainingQuestions = questions.filter((q) => !idSet.has(q.id));
+      const deletedCount = questions.length - remainingQuestions.length;
+
+      if (deletedCount > 0) {
+        await this.writeQuestions(remainingQuestions);
+      }
+
+      return deletedCount;
+    });
+  }
+
   async getSessions(): Promise<TestSession[]> {
     await this.ensureInitialized();
     const rows = await this.readRows("sessions");
