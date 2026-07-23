@@ -67,9 +67,22 @@ export async function testOutlookConnection(
 
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
-      const errorMsg =
-        data.error?.message ||
-        `Unable to fetch user details for ${config.emailAddress} (${response.status})`;
+      const errorMsg = data.error?.message || response.statusText;
+
+      if (response.status === 403 || errorMsg.includes("Insufficient privileges")) {
+        return {
+          success: false,
+          message: `OAuth Token acquired! However, Azure returned "Insufficient privileges". Action required: In Azure Portal → App Registrations → API Permissions, add Application Permission "Mail.Send" (and "User.Read.All") and click "Grant admin consent for [Tenant]".`,
+        };
+      }
+
+      if (response.status === 404) {
+        return {
+          success: false,
+          message: `OAuth Token acquired, but user account "${config.emailAddress}" was not found in Azure AD Tenant. Please check the email address.`,
+        };
+      }
+
       return {
         success: false,
         message: `Token acquired, but mailbox check failed: ${errorMsg}`,
@@ -134,6 +147,13 @@ export async function sendOutlookEmail({
     const errorMsg =
       data.error?.message ||
       `HTTP ${response.status} ${response.statusText}`;
+
+    if (response.status === 403) {
+      throw new Error(
+        `Azure permission error (403 Forbidden): Ensure Application Permission 'Mail.Send' is granted and Admin Consent is clicked in Azure Portal. Details: ${errorMsg}`
+      );
+    }
+
     throw new Error(`Failed to send email via Microsoft Graph API: ${errorMsg}`);
   }
 }

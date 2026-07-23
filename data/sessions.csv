@@ -1,3 +1,3 @@
 sessionId,title,questionCount,timeLimitMinutes,createdBy,createdAt,isActive
-frontend-basics-demo,Frontend Basics Assessment,15,20,admin@exam-platform.local,2026-07-22T08:30:00.000Z,true
-test,Test Session,10,15,admin@exam-platform.local,2026-07-22T22:24:52.839Z,true
+frontend-basics-demo,Frontend Basics Assessment,15,20,admin@exam-platform.local,2026-07-22T08:30:00.000Z,false
+test,Test Session,10,15,admin@exam-platform.local,2026-07-22T22:24:52.839Z,false
