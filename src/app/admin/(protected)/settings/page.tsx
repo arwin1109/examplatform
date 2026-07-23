@@ -309,16 +309,19 @@ export default async function AdminSettingsPage(
 
             <div className="grid gap-1.5">
               <label htmlFor="password" className="text-xs font-semibold text-[var(--foreground)]">
-                Account Password / Secret
+                Client Secret (Value) / Password
               </label>
               <input
                 id="password"
                 name="password"
                 type="password"
                 required
-                placeholder="User Password or App Password"
+                placeholder="Paste Client Secret VALUE from Azure"
                 className="rounded-xl border border-[var(--line)] bg-white px-3.5 py-2.5 text-xs outline-none transition focus:border-[var(--accent-deep)]"
               />
+              <p className="text-[11px] text-[var(--muted)] leading-4">
+                💡 Paste the string from the <strong className="text-slate-800">Value</strong> column in Azure Portal (App registrations → Certificates & secrets → New client secret). Do not use Secret ID.
+              </p>
             </div>
 
             <div className="md:col-span-2 lg:col-span-5 flex justify-end">
