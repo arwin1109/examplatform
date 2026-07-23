@@ -85,6 +85,8 @@ This document tracks the implementation state of the repository as of Wednesday,
 - [x] **Outlook Email Settings UI**: Added tabular editable interface in `/admin/settings` with live connection testing and add/edit/delete functionality.
 - [x] **Build Verification**: Verified clean compilation with `npm run build`.
 - [x] **Single Session Candidate Email Dispatch**: Added optional candidate name, candidate email address, sender dropdown, email subject, and email body customization to Single Session Link Creation.
+- [x] **Interactive Category & Topic Filter Modal**: Integrated modal dialog for selecting specific question categories and topics during session link generation.
+- [x] **Multi-Select Question Bulk Actions**: Added multi-select checkboxes, category/topic filters, search, and bulk Enable, Disable, and Delete action toolbar to Question Bank Management.
 
 ---
 
