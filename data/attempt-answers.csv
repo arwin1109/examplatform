@@ -1,0 +1,4 @@
+attemptId,questionId,selectedAnswer,isCorrect,answeredAt,questionOrder
+ae6ddd5a-504f-48c3-884d-0c44779d163d,q-html-basics,<a>,true,2026-07-22T22:25:31.387Z,1
+ae6ddd5a-504f-48c3-884d-0c44779d163d,q-css-flex,justify-content,true,2026-07-22T22:25:41.634Z,2
+ae6ddd5a-504f-48c3-884d-0c44779d163d,q-js-array,find,false,2026-07-22T22:25:58.466Z,3

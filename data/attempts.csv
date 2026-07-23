@@ -1,0 +1,2 @@
+attemptId,sessionId,name,email,phone,startedAt,endedAt,status,score,totalQuestions,answeredQuestions
+ae6ddd5a-504f-48c3-884d-0c44779d163d,test,Aravind Balineni,aravind.balineni@gmail.com,1111111111,2026-07-22T22:25:20.969Z,2026-07-22T22:26:01.777Z,completed,2,3,3
