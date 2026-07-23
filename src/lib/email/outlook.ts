@@ -23,34 +23,60 @@ async function fetchAccessToken(
 
   // If authType is delegated OR if password is provided, try ROPC Delegated Flow first
   if (authType === "delegated" || config.password) {
-    const params = new URLSearchParams();
-    params.append("grant_type", "password");
-    params.append("client_id", config.applicationId);
-    if (config.clientSecret) {
-      params.append("client_secret", config.clientSecret);
-    }
-    params.append("username", config.emailAddress);
-    params.append("password", config.password || config.clientSecret);
-    params.append(
+    const userPassword = config.password || config.clientSecret;
+
+    // Attempt 1: Public Client ROPC (without client_secret parameter to avoid AADSTS7000215)
+    const publicParams = new URLSearchParams();
+    publicParams.append("grant_type", "password");
+    publicParams.append("client_id", config.applicationId);
+    publicParams.append("username", config.emailAddress);
+    publicParams.append("password", userPassword);
+    publicParams.append(
       "scope",
       "https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/User.Read openid profile offline_access",
     );
 
-    const response = await fetch(tokenEndpoint, {
+    const publicResponse = await fetch(tokenEndpoint, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString(),
+      body: publicParams.toString(),
     });
 
-    const data = await response.json();
+    const publicData = await publicResponse.json();
 
-    if (response.ok && data.access_token) {
-      return { accessToken: data.access_token, isDelegated: true };
+    if (publicResponse.ok && publicData.access_token) {
+      return { accessToken: publicData.access_token, isDelegated: true };
+    }
+
+    // Attempt 2: Confidential Client ROPC (with client_secret parameter)
+    if (config.clientSecret && config.clientSecret !== userPassword) {
+      const confidentialParams = new URLSearchParams();
+      confidentialParams.append("grant_type", "password");
+      confidentialParams.append("client_id", config.applicationId);
+      confidentialParams.append("client_secret", config.clientSecret);
+      confidentialParams.append("username", config.emailAddress);
+      confidentialParams.append("password", userPassword);
+      confidentialParams.append(
+        "scope",
+        "https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/User.Read openid profile offline_access",
+      );
+
+      const confidentialResponse = await fetch(tokenEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: confidentialParams.toString(),
+      });
+
+      const confidentialData = await confidentialResponse.json();
+
+      if (confidentialResponse.ok && confidentialData.access_token) {
+        return { accessToken: confidentialData.access_token, isDelegated: true };
+      }
     }
 
     if (config.authType === "delegated") {
       const errorDescription =
-        data.error_description || data.error || response.statusText;
+        publicData.error_description || publicData.error || publicResponse.statusText;
       throw new Error(`Microsoft Delegated Authentication failed: ${errorDescription}`);
     }
   }
@@ -73,6 +99,13 @@ async function fetchAccessToken(
   if (!response.ok) {
     const errorDescription =
       data.error_description || data.error || response.statusText;
+
+    if (errorDescription.includes("AADSTS7000215")) {
+      throw new Error(
+        `Azure Client Secret Error (AADSTS7000215): Ensure you pasted the Client Secret "Value" (not the Secret ID) from Azure Portal → App Registrations → Certificates & secrets.`,
+      );
+    }
+
     throw new Error(`Microsoft OAuth Authentication failed: ${errorDescription}`);
   }
 
@@ -136,7 +169,7 @@ export async function testOutlookConnection(
       if (response.status === 403 || errorMsg.includes("Insufficient privileges")) {
         return {
           success: false,
-          message: `Application Token acquired, but Azure returned "Insufficient privileges". Since your Azure tenant uses Delegated Permissions, please select "Delegated Permissions" and enter your account/app password in Settings.`,
+          message: `Application Token acquired, but Azure returned "Insufficient privileges". To use Delegated Permissions instead, select "Delegated Permissions" and enter your account password in Settings.`,
         };
       }
 
