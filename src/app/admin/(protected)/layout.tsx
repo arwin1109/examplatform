@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AdminTicker } from "./admin-ticker";
 import { logoutAction } from "@/app/admin/actions";
 import { requireAdminSession } from "@/lib/auth/session";
 
@@ -19,7 +20,10 @@ export default async function ProtectedAdminLayout({
   const session = await requireAdminSession();
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-6 py-6 sm:px-10 lg:px-12">
+    <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-6 py-6 sm:px-10 lg:px-12">
+      {/* Scrolling Enhancement Announcement Ticker */}
+      <AdminTicker />
+
       <header className="rounded-[1.75rem] border border-[var(--line)] bg-[var(--panel-strong)] px-6 py-5 shadow-[0_12px_40px_rgba(99,102,110,0.08)]">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
