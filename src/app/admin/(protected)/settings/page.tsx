@@ -153,9 +153,9 @@ export default async function AdminSettingsPage(
                               <div>
                                 <label className="text-xs font-semibold text-[var(--foreground)]">Account Password / App Secret</label>
                                 <input
-                                  name="password"
+                                  name="clientSecret"
                                   type="password"
-                                  defaultValue={config.password || config.clientSecret}
+                                  defaultValue={config.clientSecret || config.password}
                                   placeholder="Password or App Secret"
                                   className="mt-1 w-full rounded-lg border border-[var(--line)] px-3 py-2 text-xs outline-none focus:border-[var(--accent-deep)]"
                                 />
@@ -259,11 +259,11 @@ export default async function AdminSettingsPage(
               <select
                 id="authType"
                 name="authType"
-                defaultValue="delegated"
+                defaultValue="client_credentials"
                 className="rounded-xl border border-[var(--line)] bg-white px-3 py-2.5 text-xs outline-none transition focus:border-[var(--accent-deep)]"
               >
-                <option value="delegated">Delegated (User Password / App Password)</option>
                 <option value="client_credentials">Application (Client Secret)</option>
+                <option value="delegated">Delegated (User Password / App Password)</option>
               </select>
             </div>
 
@@ -308,12 +308,12 @@ export default async function AdminSettingsPage(
             </div>
 
             <div className="grid gap-1.5">
-              <label htmlFor="password" className="text-xs font-semibold text-[var(--foreground)]">
+              <label htmlFor="clientSecret" className="text-xs font-semibold text-[var(--foreground)]">
                 Client Secret (Value) / Password
               </label>
               <input
-                id="password"
-                name="password"
+                id="clientSecret"
+                name="clientSecret"
                 type="password"
                 required
                 placeholder="Paste Client Secret VALUE from Azure"

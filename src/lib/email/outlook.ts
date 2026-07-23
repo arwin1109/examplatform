@@ -19,13 +19,13 @@ async function fetchAccessToken(
     config.tenantId,
   )}/oauth2/v2.0/token`;
 
-  const authType = config.authType || (config.password ? "delegated" : "client_credentials");
+  const isDelegated = config.authType === "delegated";
 
-  // If authType is delegated OR if password is provided, try ROPC Delegated Flow first
-  if (authType === "delegated" || config.password) {
+  // Delegated ROPC Flow (ONLY executed when authType === "delegated")
+  if (isDelegated) {
     const userPassword = config.password || config.clientSecret;
 
-    // Attempt 1: Public Client ROPC (without client_secret parameter to avoid AADSTS7000215)
+    // Attempt 1: Public Client ROPC (without client_secret parameter)
     const publicParams = new URLSearchParams();
     publicParams.append("grant_type", "password");
     publicParams.append("client_id", config.applicationId);
@@ -74,14 +74,12 @@ async function fetchAccessToken(
       }
     }
 
-    if (config.authType === "delegated") {
-      const errorDescription =
-        publicData.error_description || publicData.error || publicResponse.statusText;
-      throw new Error(`Microsoft Delegated Authentication failed: ${errorDescription}`);
-    }
+    const errorDescription =
+      publicData.error_description || publicData.error || publicResponse.statusText;
+    throw new Error(`Microsoft Delegated Authentication failed: ${errorDescription}`);
   }
 
-  // Application Flow (grant_type=client_credentials)
+  // Application Flow (grant_type=client_credentials) - ONLY executed when authType is 'client_credentials'
   const params = new URLSearchParams();
   params.append("grant_type", "client_credentials");
   params.append("client_id", config.applicationId);
@@ -102,7 +100,7 @@ async function fetchAccessToken(
 
     if (errorDescription.includes("AADSTS7000215")) {
       throw new Error(
-        `Azure Client Secret Error (AADSTS7000215): Ensure you pasted the Client Secret "Value" (not the Secret ID) from Azure Portal → App Registrations → Certificates & secrets.`,
+        `Azure Client Secret Error (AADSTS7000215): Ensure you pasted the Client Secret "Value" (not Secret ID) from Azure Portal → App Registrations → Certificates & secrets.`,
       );
     }
 
@@ -169,7 +167,7 @@ export async function testOutlookConnection(
       if (response.status === 403 || errorMsg.includes("Insufficient privileges")) {
         return {
           success: false,
-          message: `Application Token acquired, but Azure returned "Insufficient privileges". To use Delegated Permissions instead, select "Delegated Permissions" and enter your account password in Settings.`,
+          message: `Application Token acquired, but Azure returned "Insufficient privileges". Action required: In Azure Portal → App Registrations → API Permissions, add Application Permission "Mail.Send" (and "User.Read.All") and click "Grant admin consent".`,
         };
       }
 

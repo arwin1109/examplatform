@@ -690,19 +690,21 @@ export async function addEmailConfigAction(formData: FormData) {
   const emailAddress = normalizeEmail(getTextField(formData, "emailAddress"));
   const applicationId = getTextField(formData, "applicationId");
   const tenantId = getTextField(formData, "tenantId");
-  const clientSecret = getTextField(formData, "clientSecret");
-  const authType = (getTextField(formData, "authType") as "client_credentials" | "delegated") || "delegated";
-  const password = getTextField(formData, "password");
+  const authType = (getTextField(formData, "authType") as "client_credentials" | "delegated") || "client_credentials";
+  const rawSecretOrPass = getTextField(formData, "clientSecret") || getTextField(formData, "password");
 
-  if (!emailAddress || !applicationId || !tenantId || (!clientSecret && !password)) {
+  if (!emailAddress || !applicationId || !tenantId || !rawSecretOrPass) {
     redirect(
       buildRedirectPath(
         "/admin/settings",
         "error",
-        "Email address, Application ID, Tenant ID, and Client Secret / Account Password are required.",
+        "Email address, Application ID, Tenant ID, and Client Secret / Password are required.",
       ),
     );
   }
+
+  const clientSecret = rawSecretOrPass;
+  const password = authType === "delegated" ? rawSecretOrPass : "";
 
   try {
     const storageProvider = await getStorageProvider();
@@ -710,7 +712,7 @@ export async function addEmailConfigAction(formData: FormData) {
       emailAddress,
       applicationId,
       tenantId,
-      clientSecret: clientSecret || password,
+      clientSecret,
       authType,
       password,
     });
@@ -727,7 +729,7 @@ export async function addEmailConfigAction(formData: FormData) {
     buildRedirectPath(
       "/admin/settings",
       "success",
-      `Outlook email configuration for ${emailAddress} added successfully.`,
+      `Outlook email configuration for ${emailAddress} added successfully in ${authType} mode.`,
     ),
   );
 }
@@ -739,9 +741,8 @@ export async function updateEmailConfigAction(formData: FormData) {
   const emailAddress = normalizeEmail(getTextField(formData, "emailAddress"));
   const applicationId = getTextField(formData, "applicationId");
   const tenantId = getTextField(formData, "tenantId");
-  const clientSecret = getTextField(formData, "clientSecret");
-  const authType = (getTextField(formData, "authType") as "client_credentials" | "delegated") || "delegated";
-  const password = getTextField(formData, "password");
+  const authType = (getTextField(formData, "authType") as "client_credentials" | "delegated") || "client_credentials";
+  const rawSecretOrPass = getTextField(formData, "clientSecret") || getTextField(formData, "password");
 
   if (!id || !emailAddress || !applicationId || !tenantId) {
     redirect(
@@ -753,13 +754,16 @@ export async function updateEmailConfigAction(formData: FormData) {
     );
   }
 
+  const clientSecret = rawSecretOrPass;
+  const password = authType === "delegated" ? rawSecretOrPass : "";
+
   try {
     const storageProvider = await getStorageProvider();
     const updated = await storageProvider.updateEmailConfig(id, {
       emailAddress,
       applicationId,
       tenantId,
-      clientSecret: clientSecret || password,
+      clientSecret,
       authType,
       password,
     });
@@ -782,7 +786,7 @@ export async function updateEmailConfigAction(formData: FormData) {
     buildRedirectPath(
       "/admin/settings",
       "success",
-      `Email configuration updated for ${emailAddress}.`,
+      `Email configuration updated for ${emailAddress} (${authType} mode).`,
     ),
   );
 }
