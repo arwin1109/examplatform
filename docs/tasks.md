@@ -84,6 +84,7 @@ This document tracks the implementation state of the repository as of Wednesday,
 - [x] **Bulk Session Creation & CSV Import**: Implemented candidate CSV template download route (`/api/admin/candidate-template`) and bulk link creation action (`bulkCreateCandidateSessionsAction`).
 - [x] **Outlook Email Settings UI**: Added tabular editable interface in `/admin/settings` with live connection testing and add/edit/delete functionality.
 - [x] **Build Verification**: Verified clean compilation with `npm run build`.
+- [x] **Single Session Candidate Email Dispatch**: Added optional candidate name, candidate email address, sender dropdown, email subject, and email body customization to Single Session Link Creation.
 
 ---
 
@@ -91,4 +92,5 @@ This document tracks the implementation state of the repository as of Wednesday,
 
 - `npm run lint` and `npm run build` both passed successfully.
 - Manual browser walkthroughs are recommended for testing live Microsoft Graph API client credential credentials.
+
 
