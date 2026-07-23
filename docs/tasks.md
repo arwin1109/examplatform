@@ -87,6 +87,7 @@ This document tracks the implementation state of the repository as of Wednesday,
 - [x] **Single Session Candidate Email Dispatch**: Added optional candidate name, candidate email address, sender dropdown, email subject, and email body customization to Single Session Link Creation.
 - [x] **Interactive Category & Topic Filter Modal**: Integrated modal dialog for selecting specific question categories and topics during session link generation.
 - [x] **Multi-Select Question Bulk Actions**: Added multi-select checkboxes, category/topic filters, search, and bulk Enable, Disable, and Delete action toolbar to Question Bank Management.
+- [x] **Early Test End & Answer Count Fix**: Fixed status resolution (`ended_early` vs `completed`) and answer review display for tests ended immediately or submitted with unanswered questions.
 
 ---
 
