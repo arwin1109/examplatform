@@ -1,4 +1,4 @@
-# Accelirate Exam Platform
+# Exam Platform
 
 CSV-first MCQ testing platform built with Next.js 16, TypeScript, App Router, and Tailwind CSS.
 
@@ -30,11 +30,6 @@ CSV-first MCQ testing platform built with Next.js 16, TypeScript, App Router, an
 - `/admin/settings`
 
 ## Local admin credentials
-
-Default credentials for local development:
-
-- Username / Email: `admin`
-- Password: `Admin@260723`
 
 You can override these with environment variables:
 
