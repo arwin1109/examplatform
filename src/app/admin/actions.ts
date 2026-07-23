@@ -461,16 +461,32 @@ export async function createSessionAction(formData: FormData) {
     "Hello {candidate_name},\n\nYou have been invited to complete the aptitude assessment: {test_title}.\n\nPlease click the link below to start your test:\n{test_link}\n\nDetails:\n- Time limit: {time_limit} minutes\n- Questions: {question_count}\n\nNote: Once completed or ended, this link will expire.\n\nGood luck!";
   const sendEmail = getCheckboxValue(formData, "sendEmail");
 
-  const enabledQuestions = (await storageProvider.getQuestions()).filter(
+  const rawCategories = getTextField(formData, "selectedCategories");
+  const rawTopics = getTextField(formData, "selectedTopics");
+
+  const selectedCategories: string[] = rawCategories ? JSON.parse(rawCategories) : [];
+  const selectedTopics: string[] = rawTopics ? JSON.parse(rawTopics) : [];
+
+  let eligibleQuestions = (await storageProvider.getQuestions()).filter(
     (question) => question.isEnabled,
   );
 
-  if (questionCount > enabledQuestions.length) {
+  if (selectedCategories.length > 0) {
+    const catSet = new Set(selectedCategories.map((c) => c.toLowerCase()));
+    eligibleQuestions = eligibleQuestions.filter((q) => catSet.has(q.category.toLowerCase()));
+  }
+
+  if (selectedTopics.length > 0) {
+    const topSet = new Set(selectedTopics.map((t) => t.toLowerCase()));
+    eligibleQuestions = eligibleQuestions.filter((q) => topSet.has(q.topic.toLowerCase()));
+  }
+
+  if (questionCount > eligibleQuestions.length) {
     redirect(
       buildRedirectPath(
         "/admin/sessions",
         "error",
-        `Only ${enabledQuestions.length} enabled questions are currently available.`,
+        `Only ${eligibleQuestions.length} enabled questions match your selected categories/topics.`,
       ),
     );
   }
@@ -490,6 +506,8 @@ export async function createSessionAction(formData: FormData) {
       timeLimitMinutes,
       createdBy: session.email,
       isActive,
+      selectedCategories: selectedCategories.length > 0 ? selectedCategories : undefined,
+      selectedTopics: selectedTopics.length > 0 ? selectedTopics : undefined,
     });
   } catch (error) {
     const message =
@@ -931,6 +949,12 @@ export async function bulkCreateCandidateSessionsAction(formData: FormData) {
     "Hello {candidate_name},\n\nYou have been invited to complete the aptitude assessment: {test_title}.\n\nPlease click the link below to start your test:\n{test_link}\n\nDetails:\n- Time limit: {time_limit} minutes\n- Questions: {question_count}\n\nNote: Once completed or ended, this link will expire.\n\nGood luck!";
   const sendEmail = getCheckboxValue(formData, "sendEmail");
 
+  const rawCategories = getTextField(formData, "selectedCategories");
+  const rawTopics = getTextField(formData, "selectedTopics");
+
+  const selectedCategories: string[] = rawCategories ? JSON.parse(rawCategories) : [];
+  const selectedTopics: string[] = rawTopics ? JSON.parse(rawTopics) : [];
+
   const file = formData.get("candidateCsv") as File | null;
 
   if (!file || file.size === 0) {
@@ -943,16 +967,26 @@ export async function bulkCreateCandidateSessionsAction(formData: FormData) {
     );
   }
 
-  const enabledQuestions = (await storageProvider.getQuestions()).filter(
+  let eligibleQuestions = (await storageProvider.getQuestions()).filter(
     (q) => q.isEnabled,
   );
 
-  if (questionCount > enabledQuestions.length) {
+  if (selectedCategories.length > 0) {
+    const catSet = new Set(selectedCategories.map((c) => c.toLowerCase()));
+    eligibleQuestions = eligibleQuestions.filter((q) => catSet.has(q.category.toLowerCase()));
+  }
+
+  if (selectedTopics.length > 0) {
+    const topSet = new Set(selectedTopics.map((t) => t.toLowerCase()));
+    eligibleQuestions = eligibleQuestions.filter((q) => topSet.has(q.topic.toLowerCase()));
+  }
+
+  if (questionCount > eligibleQuestions.length) {
     redirect(
       buildRedirectPath(
         "/admin/sessions",
         "error",
-        `Only ${enabledQuestions.length} enabled questions are currently available.`,
+        `Only ${eligibleQuestions.length} enabled questions match your selected categories/topics.`,
       ),
     );
   }
@@ -1023,6 +1057,8 @@ export async function bulkCreateCandidateSessionsAction(formData: FormData) {
         timeLimitMinutes,
         createdBy: session.email,
         isActive: true,
+        selectedCategories: selectedCategories.length > 0 ? selectedCategories : undefined,
+        selectedTopics: selectedTopics.length > 0 ? selectedTopics : undefined,
       });
 
       createdCount++;

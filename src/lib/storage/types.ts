@@ -23,6 +23,8 @@ export interface TestSession {
   createdBy: string;
   createdAt: string;
   isActive: boolean;
+  selectedCategories?: string[];
+  selectedTopics?: string[];
 }
 
 export interface Attempt {

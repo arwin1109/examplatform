@@ -23,7 +23,9 @@ CREATE TABLE IF NOT EXISTS sessions (
   time_limit_minutes INTEGER NOT NULL DEFAULT 15,
   created_by VARCHAR(255) NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  is_active BOOLEAN NOT NULL DEFAULT true
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  selected_categories JSONB DEFAULT '[]'::jsonb,
+  selected_topics JSONB DEFAULT '[]'::jsonb
 );
 
 -- Candidate Exam Attempts Table

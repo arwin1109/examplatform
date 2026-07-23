@@ -308,8 +308,8 @@ export class PostgresStorageProvider implements StorageProvider {
     const now = new Date().toISOString();
 
     await this.getPool().query(
-      `INSERT INTO sessions (session_id, title, question_count, time_limit_minutes, created_by, created_at, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      `INSERT INTO sessions (session_id, title, question_count, time_limit_minutes, created_by, created_at, is_active, selected_categories, selected_topics)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
         session.sessionId,
         session.title.trim(),
@@ -318,6 +318,8 @@ export class PostgresStorageProvider implements StorageProvider {
         session.createdBy,
         now,
         session.isActive,
+        JSON.stringify(session.selectedCategories || []),
+        JSON.stringify(session.selectedTopics || []),
       ],
     );
 
@@ -698,6 +700,8 @@ export class PostgresStorageProvider implements StorageProvider {
       createdBy: row.created_by,
       createdAt: new Date(row.created_at).toISOString(),
       isActive: Boolean(row.is_active),
+      selectedCategories: row.selected_categories || undefined,
+      selectedTopics: row.selected_topics || undefined,
     };
   }
 

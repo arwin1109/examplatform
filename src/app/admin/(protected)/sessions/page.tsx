@@ -76,6 +76,7 @@ export default async function AdminSessionsPage(
           </div>
 
           <SessionTabs
+            questions={questions}
             enabledQuestionCount={enabledQuestionCount}
             emailConfigs={emailConfigs}
           />

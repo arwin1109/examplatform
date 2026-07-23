@@ -254,7 +254,13 @@ export default async function CandidateTestPage(
             enabledQuestions.find((question) => question.id === questionId) ?? null,
           )
           .filter((question) => question !== null)
-      : buildAttemptQuestionSet(enabledQuestions, session.questionCount, attempt.attemptId);
+      : buildAttemptQuestionSet(
+          enabledQuestions,
+          session.questionCount,
+          attempt.attemptId,
+          session.selectedCategories,
+          session.selectedTopics,
+        );
 
   if (attempt.status !== "in_progress") {
     const score = attempt.score ?? calculateScore(savedAnswers);

@@ -37,9 +37,31 @@ export function buildAttemptQuestionSet(
   questions: Question[],
   questionCount: number,
   attemptId: string,
+  selectedCategories?: string[],
+  selectedTopics?: string[],
 ) {
+  let eligibleQuestions = questions;
+
+  if (selectedCategories && selectedCategories.length > 0) {
+    const categorySet = new Set(selectedCategories.map((c) => c.toLowerCase()));
+    eligibleQuestions = eligibleQuestions.filter((q) =>
+      categorySet.has(q.category.toLowerCase()),
+    );
+  }
+
+  if (selectedTopics && selectedTopics.length > 0) {
+    const topicSet = new Set(selectedTopics.map((t) => t.toLowerCase()));
+    eligibleQuestions = eligibleQuestions.filter((q) =>
+      topicSet.has(q.topic.toLowerCase()),
+    );
+  }
+
+  if (eligibleQuestions.length === 0) {
+    eligibleQuestions = questions;
+  }
+
   const random = seededRandom(hashSeed(attemptId));
-  const shuffledQuestions = [...questions];
+  const shuffledQuestions = [...eligibleQuestions];
 
   for (let index = shuffledQuestions.length - 1; index > 0; index -= 1) {
     const swapIndex = Math.floor(random() * (index + 1));
@@ -48,7 +70,7 @@ export function buildAttemptQuestionSet(
     shuffledQuestions[swapIndex] = current;
   }
 
-  return shuffledQuestions.slice(0, questionCount);
+  return shuffledQuestions.slice(0, Math.min(questionCount, shuffledQuestions.length));
 }
 
 export function buildAnswerMap(answers: AttemptAnswer[]) {

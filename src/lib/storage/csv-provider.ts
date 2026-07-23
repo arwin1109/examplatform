@@ -253,6 +253,8 @@ const FILE_CONFIG: Record<
       "createdBy",
       "createdAt",
       "isActive",
+      "selectedCategories",
+      "selectedTopics",
     ],
     seedRows: [
       {
@@ -550,6 +552,8 @@ export class CsvStorageProvider implements StorageProvider {
       createdBy: row.createdBy,
       createdAt: row.createdAt,
       isActive: parseBoolean(row.isActive),
+      selectedCategories: row.selectedCategories ? JSON.parse(row.selectedCategories) : undefined,
+      selectedTopics: row.selectedTopics ? JSON.parse(row.selectedTopics) : undefined,
     }));
   }
 
@@ -988,6 +992,8 @@ export class CsvStorageProvider implements StorageProvider {
         createdBy: session.createdBy,
         createdAt: session.createdAt,
         isActive: String(session.isActive),
+        selectedCategories: session.selectedCategories ? JSON.stringify(session.selectedCategories) : "",
+        selectedTopics: session.selectedTopics ? JSON.stringify(session.selectedTopics) : "",
       })),
     );
   }

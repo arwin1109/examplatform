@@ -3,14 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { bulkCreateCandidateSessionsAction, createSessionAction } from "@/app/admin/actions";
-import type { EmailConfig } from "@/lib/storage/types";
+import { CategoryTopicModal } from "./category-topic-modal";
+import type { EmailConfig, Question } from "@/lib/storage/types";
 
 interface SessionTabsProps {
+  questions: Question[];
   enabledQuestionCount: number;
   emailConfigs: EmailConfig[];
 }
 
-export function SessionTabs({ enabledQuestionCount, emailConfigs }: SessionTabsProps) {
+export function SessionTabs({ questions, enabledQuestionCount, emailConfigs }: SessionTabsProps) {
   const [activeTab, setActiveTab] = useState<"bulk" | "single">("bulk");
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
 
@@ -143,6 +145,9 @@ export function SessionTabs({ enabledQuestionCount, emailConfigs }: SessionTabsP
               />
             </div>
           </div>
+
+          {/* Category & Topic Filter Selection */}
+          <CategoryTopicModal questions={questions} />
 
           {/* Email Settings Box */}
           <div className="rounded-2xl border border-[var(--line)] bg-white/90 p-5 grid gap-4">
@@ -321,6 +326,9 @@ export function SessionTabs({ enabledQuestionCount, emailConfigs }: SessionTabsP
               />
             </div>
           </div>
+
+          {/* Category & Topic Filter Selection */}
+          <CategoryTopicModal questions={questions} />
 
           {/* Email Settings Box for Single Session */}
           <div className="rounded-2xl border border-[var(--line)] bg-white/90 p-5 grid gap-4">
