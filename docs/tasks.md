@@ -88,6 +88,7 @@ This document tracks the implementation state of the repository as of Wednesday,
 - [x] **Interactive Category & Topic Filter Modal**: Integrated modal dialog for selecting specific question categories and topics during session link generation.
 - [x] **Multi-Select Question Bulk Actions**: Added multi-select checkboxes, category/topic filters, search, and bulk Enable, Disable, and Delete action toolbar to Question Bank Management.
 - [x] **Early Test End & Answer Count Fix**: Fixed status resolution (`ended_early` vs `completed`) and answer review display for tests ended immediately or submitted with unanswered questions.
+- [x] **Admin Scrolling Announcement Ticker**: Added a marquee ticker across the top of protected admin pages showcasing latest platform features and enhancements.
 
 ---
 
