@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-import { getStorageProvider } from "@/lib/storage";
-
 const platformFeatures = [
   {
     icon: (
@@ -94,25 +92,12 @@ const platformFeatures = [
   },
 ];
 
-export default async function Home() {
-  const storageProvider = await getStorageProvider();
-  const [questions, sessions, attempts, emailConfigs, settings] = await Promise.all([
-    storageProvider.getQuestions(),
-    storageProvider.getSessions(),
-    storageProvider.getAttempts(),
-    storageProvider.getEmailConfigs(),
-    storageProvider.getSettings(),
-  ]);
-
-  const enabledQuestionCount = questions.filter((question) => question.isEnabled).length;
-  const activeSessions = sessions.filter((session) => session.isActive);
-  const envStorageProvider = (process.env.STORAGE_PROVIDER || process.env.DB_PROVIDER || "").trim().toLowerCase();
-
+export default function Home() {
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 sm:px-10 lg:px-12">
       {/* Hero Section */}
       <section className="overflow-hidden rounded-[2.25rem] border border-[var(--line)] bg-[var(--panel-strong)] shadow-[0_18px_60px_rgba(75,85,99,0.12)]">
-        <div className="grid gap-10 px-6 py-10 sm:px-8 lg:grid-cols-[1.15fr_0.85fr] lg:px-12 lg:py-14">
+        <div className="px-6 py-10 sm:px-8 lg:px-12 lg:py-14">
           <div className="flex flex-col gap-8">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--line)] pb-6">
               <div>
@@ -120,7 +105,7 @@ export default async function Home() {
                   Accelirate Assessment Platform
                 </p>
                 <p className="mt-1.5 text-sm font-medium text-[var(--muted)]">
-                  Enterprise MCQ Exam Platform with Outlook Automation & Link Expiration
+                  Enterprise MCQ Exam Platform with Outlook Automation &amp; Link Expiration
                 </p>
               </div>
               <div className="rounded-full border border-emerald-300 bg-emerald-50 px-4 py-1.5 text-xs font-bold text-emerald-900 shadow-xs">
@@ -139,78 +124,14 @@ export default async function Home() {
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/admin"
+                href="/admin/login"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent-deep)] px-7 py-3.5 text-sm font-semibold !text-white text-white transition-transform duration-200 hover:bg-[var(--accent)] hover:-translate-y-0.5 shadow-md"
               >
-                <span>Access Admin Portal</span>
+                <span>Admin Login</span>
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </Link>
-              <Link
-                href="/admin/sessions"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--line)] bg-white/80 px-7 py-3.5 text-sm font-semibold text-[var(--foreground)] transition-colors duration-200 hover:bg-white shadow-xs"
-              >
-                <span>Create Candidate Links</span>
-                <svg className="h-4 w-4 text-[var(--accent-deep)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-
-          {/* Live System Telemetry Card */}
-          <div className="grid gap-4 rounded-[1.75rem] bg-[linear-gradient(180deg,rgba(247,243,234,0.95),rgba(255,255,255,0.85))] p-5 shadow-xs">
-            <div className="rounded-[1.4rem] border border-[var(--line)] bg-white/90 p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--accent-deep)]">
-                  Live System Metrics
-                </p>
-                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              </div>
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-xs font-medium text-[var(--muted)]">Question Bank</p>
-                  <p className="mt-1 text-3xl font-bold text-[var(--foreground)]">{questions.length}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-[var(--muted)]">Enabled Questions</p>
-                  <p className="mt-1 text-3xl font-bold text-emerald-700">{enabledQuestionCount}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-[var(--muted)]">Active Sessions</p>
-                  <p className="mt-1 text-3xl font-bold text-[var(--accent-deep)]">{activeSessions.length}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-[var(--muted)]">Outlook Mail Accounts</p>
-                  <p className="mt-1 text-3xl font-bold text-[var(--foreground)]">{emailConfigs.length}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-[1.4rem] border border-[var(--line)] bg-[var(--mint)]/65 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--foreground)]">
-                Storage Engine Status
-              </p>
-              <div className="mt-3 flex items-center justify-between">
-                <p className="text-xl font-bold uppercase text-[var(--foreground)]">
-                  {settings.storageProvider} Provider
-                </p>
-                <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-[var(--accent-deep)] uppercase">
-                  {envStorageProvider ? `.env: ${envStorageProvider}` : "UI Configured"}
-                </span>
-              </div>
-              {activeSessions.length > 0 ? (
-                <div className="mt-4 rounded-2xl bg-white/80 p-3.5 text-xs text-[var(--foreground)]">
-                  <p className="font-semibold text-[var(--accent-deep)]">Available Active Test Link:</p>
-                  <Link
-                    href={`/test/${activeSessions[0].sessionId}`}
-                    className="mt-1 block font-mono font-bold text-slate-800 hover:underline truncate"
-                  >
-                    /test/{activeSessions[0].sessionId} ({activeSessions[0].title})
-                  </Link>
-                </div>
-              ) : null}
             </div>
           </div>
         </div>
@@ -251,53 +172,6 @@ export default async function Home() {
           ))}
         </div>
       </section>
-
-      {/* Direct Test Sessions Launch Section */}
-      {activeSessions.length > 0 ? (
-        <section className="mt-12 rounded-[2rem] border border-[var(--line)] bg-[var(--panel-strong)] p-8">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-[var(--line)] pb-5">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--accent-deep)]">
-                Live Assessment Sessions
-              </p>
-              <h2 className="mt-1 text-2xl font-bold text-[var(--foreground)]">
-                Take an Active Candidate Test
-              </h2>
-            </div>
-            <p className="text-xs font-medium text-[var(--muted)]">
-              Click any active session below to simulate a proctored candidate attempt
-            </p>
-          </div>
-
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {activeSessions.map((session) => (
-              <Link
-                key={session.sessionId}
-                href={`/test/${session.sessionId}`}
-                className="group flex flex-col justify-between rounded-[1.5rem] border border-[var(--line)] bg-white/85 p-5 transition hover:border-[var(--accent)] hover:bg-white hover:shadow-md"
-              >
-                <div>
-                  <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-bold text-emerald-800">
-                    Active Session
-                  </span>
-                  <h3 className="mt-3 text-lg font-bold text-[var(--foreground)] group-hover:text-[var(--accent-deep)]">
-                    {session.title}
-                  </h3>
-                  <p className="mt-2 text-xs text-[var(--muted)]">
-                    {session.questionCount} Questions • {session.timeLimitMinutes} Minutes Timer
-                  </p>
-                </div>
-                <div className="mt-4 flex items-center gap-1 text-xs font-bold text-[var(--accent-deep)]">
-                  <span>Start Assessment</span>
-                  <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
     </main>
   );
 }

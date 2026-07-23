@@ -5,7 +5,7 @@ import { logoutAction } from "@/app/admin/actions";
 import { requireAdminSession } from "@/lib/auth/session";
 
 const adminLinks = [
-  { href: "/admin", label: "Overview" },
+  { href: "/admin", label: "Dashboard" },
   { href: "/admin/questions", label: "Questions" },
   { href: "/admin/sessions", label: "Sessions" },
   { href: "/admin/results", label: "Results" },

@@ -5,26 +5,28 @@ CSV-first MCQ testing platform built with Next.js 16, TypeScript, App Router, an
 ## What is implemented
 
 - Admin login with local email/password authentication
-- Protected admin dashboard routes
-- Question bank CRUD with enable/disable and bulk import
-- Test session creation with shareable candidate links
+- Protected admin routes with comprehensive **Dashboard** after login
+- Dashboard metrics: question bank stats, active sessions, total attempts, average scores, difficulty/category distribution, recent attempts, storage engine status, email accounts
+- Question bank CRUD with enable/disable, bulk import, and multi-select actions
+- Test session creation with shareable candidate links and category/topic filters
 - Candidate onboarding form and timed one-question-at-a-time exam flow
 - Attempt capture, answer persistence, scoring, and results dashboard
 - CSV-backed storage provider with PostgreSQL-ready scaffold
-- Settings page with visible backend selection controls
+- Settings page with storage backend, Outlook email configs, and admin credentials
+- Static public landing page (no live metrics exposed publicly)
 
 ## Routes
 
 ### Public
 
-- `/`
-- `/test/[sessionId]`
+- `/` — Static marketing/feature page with admin login link
+- `/test/[sessionId]` — Candidate test entry
 
-### Admin
+### Admin (protected)
 
-- `/admin/login`
-- `/admin`
-- `/admin/questions`
+- `/admin/login` — Admin authentication
+- `/admin` — **Dashboard** with all platform metrics
+- `/admin/questions` — Question bank management
 - `/admin/sessions`
 - `/admin/results`
 - `/admin/settings`

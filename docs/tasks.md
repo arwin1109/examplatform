@@ -92,9 +92,16 @@ This document tracks the implementation state of the repository as of Wednesday,
 
 ---
 
+## 10. Dashboard & Landing Page Cleanup (July 23, 2026)
+
+- [x] **Remove Live Metrics from Landing Page**: Removed all server-side data fetching, Live System Telemetry card, Storage Engine Status card, and Active Test Sessions listing from the public landing page. Landing page is now a clean, static marketing page.
+- [x] **Comprehensive Admin Dashboard**: Replaced the basic admin overview with a full metrics dashboard containing: 4 primary metric cards (Question Bank, Active Sessions, Total Attempts, Average Score), 4 secondary metrics (Email Accounts, Ended Early, Timed Out, Storage Engine), Question Bank Breakdown with difficulty distribution bars and category distribution, Recent Attempts with color-coded status badges, Active Test Sessions with preview links, and Quick Actions with icons.
+- [x] **Nav Label Update**: Renamed admin nav link from "Overview" to "Dashboard".
+- [x] **Build Verification**: Verified clean compilation with `npm run build`.
+
+---
+
 ## Notes
 
 - `npm run lint` and `npm run build` both passed successfully.
 - Manual browser walkthroughs are recommended for testing live Microsoft Graph API client credential credentials.
-
-
